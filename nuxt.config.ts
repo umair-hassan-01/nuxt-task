@@ -7,8 +7,22 @@ export default defineNuxtConfig({
   build: {
     transpile: ['vuetify'],
   },
-  modules: [
-    '@nuxtjs/tailwindcss',
+  app:{
+    head:{
+      link:[
+        {
+          rel:"stylesheet",
+          href:"https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.css"
+        }
+      ],
+      script:[
+        {
+          src:"https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.js"
+        }
+      ]
+    }
+  },
+  modules: ['@nuxtjs/tailwindcss', '@ant-design-vue/nuxt',
     (_options, nuxt) => {
       nuxt.hooks.hook('vite:extendConfig', (config) => {
         // @ts-expect-error

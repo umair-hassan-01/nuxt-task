@@ -24,55 +24,58 @@ const uischema = {
     type: "VerticalLayout",
     elements: [
         {
-            type: "Label",
-            text: "Login Information",
+            type: "Control",
+            scope: "#/properties/user_name",
         },
         {
-            type: "HorizontalLayout",
-            elements: [
-                {
-                    type: "Control",
-                    scope: "#/properties/user_name",
-                },
-                {
-                    type: "Control",
-                    scope: "#/properties/password",
-                },
-            ],
+            type: "Control",
+            scope: "#/properties/password",
+
         },
-    ],
+    ]
 };
 
 
 const componentSchema = {
-    name:"LoginForm",
-    components:{
+    name: "LoginForm",
+    components: {
         JsonForms
     },
 
-    setup(){
+    setup() {
         const data = reactive({
-            user_name:"",
-            password:""
+            user_name: "",
+            password: ""
         });
 
-        const onChange = (event : JsonFormsChangeEvent)=>{
-            Object.assign(data , event.data);
+        const onChange = (event: JsonFormsChangeEvent) => {
+            Object.assign(data, event.data);
         }
 
-        const handleSubmit = async ()=>{
+        const handleLogin = async () => {
             console.log("Submit form with user name " + data.user_name);
             const response = await useRequestUtils().getMessage(`/api/helo?user_name=${data.user_name}&password=${data.password}`);
             console.log(response);
         };
 
+        const handleSignUp = async ()=>{
+            console.log("register user request");
+            const response = await useFetch("/api/auth/register" , {
+                method:"POST",
+                body:JSON.stringify(data)
+            });
+
+            console.log("done with request");
+        }
+
         return {
             data,
-            renderers:Object.freeze(renderers),
+            renderers: Object.freeze(renderers),
             schema,
             uischema,
-            handleSubmit,
+            handleLogin,
             onChange,
+            handleSignUp
         }
     }
 };

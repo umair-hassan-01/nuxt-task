@@ -1,5 +1,7 @@
 <template>
   <v-app>
-   <Navbar/>
-</v-app>
+    <NuxtLayout name="default">
+      <NuxtPage />
+    </NuxtLayout>
+  </v-app>
 </template>

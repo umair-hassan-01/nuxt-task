@@ -1,12 +1,3 @@
-<script setup lang="ts">
-const {getMessage}  = useRequestUtils();
-let message:string = "";
-
-message = <string>(await getMessage("/api/helo?userName=nothing&userId=nothing&displayName=umair"));
-</script>
-
 <template>
-    <div>
-        <h1>{{ message }}</h1>
-    </div>
+<h1>this is home index page</h1>
 </template>

@@ -8,8 +8,8 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "knexmake":"npx knex migrate:make init  --migrations-directory db/migrations",
-    "knexmigrate":"npx knex migrate:latest --knexfile db/knexfile"
+    "knexmake": "npx knex migrate:make init  --migrations-directory db/migrations",
+    "knexmigrate": "npx knex migrate:latest --knexfile db/knexfile"
   },
   "dependencies": {
     "@jsonforms/core": "^3.3.0",
@@ -24,6 +24,7 @@
     "vue": "latest"
   },
   "devDependencies": {
+    "@ant-design-vue/nuxt": "^1.4.2",
     "@nuxtjs/tailwindcss": "^6.12.1",
     "css-loader": "^7.1.2",
     "sass-embedded": "^1.77.8",
