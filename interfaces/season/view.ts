@@ -6,4 +6,6 @@ export default interface IView{
     backgroundBlurUrl:string
     buttonText:string
     description:string
+    ballColor:string
+    clubUrl:string
 }
