@@ -49,10 +49,18 @@ const uischema = {
                 {
                     type: 'Control',
                     scope: '#/properties/startTime',
+                    "options": {
+                        "ampm": true,
+                        "dateTimeFormat": "MM/DD/YYYY hh:mm a"
+                    }
                 },
                 {
                     type:"Control",
-                    scope:"#/properties/endTime"
+                    scope:"#/properties/endTime",
+                    "options": {
+                        "ampm": true,
+                        "dateTimeFormat": "MM/DD/YYYY hh:mm a"
+                    }
                 }
             ]
         },

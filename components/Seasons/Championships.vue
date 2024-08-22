@@ -8,23 +8,30 @@
         </div>
         <div>
             <div class="flex justify-end align-center items-between">
-                <v-dialog v-model="dialog" max-width="400" persistent>
+                <v-dialog v-model="dialog" max-width="65%" persistent>
                     <template v-slot:activator="{ props: activatorProps }">
-                        <v-btn v-bind="activatorProps" class="mx-2 red--text" prepend-icon="mdi-plus" variant="outlined">CREATE</v-btn>
+                        <v-btn v-bind="activatorProps" class="mx-2 red--text" prepend-icon="mdi-plus"
+                            variant="outlined">CREATE</v-btn>
 
                     </template>
 
                     <v-card>
+                        <template v-slot:text>
+                            <seasons-championship-form @event-form-emit="eventFormEmit" :current-event="anEvent" />
+                        </template>
                         <template v-slot:actions>
-                            <v-spacer></v-spacer>
+                            <v-spacer>
 
-                            <v-btn @click="dialog = false"> Disagree </v-btn>
+                            </v-spacer>
 
-                            <v-btn @click="dialog = false"> Agree </v-btn>
+                            <v-btn @click="dialog = false"> CANCEL </v-btn>
+
+                            <v-btn @click="submitEventForm"> CREATE </v-btn>
                         </template>
                     </v-card>
                 </v-dialog>
-                <v-btn class="mx-2 red--text" prepend-icon="mdi-content-copy" variant="outlined">COPY</v-btn>
+                <v-btn @click="copyEvents" class="mx-2 red--text" prepend-icon="mdi-content-copy"
+                    variant="outlined">COPY</v-btn>
                 <v-btn class="mx-2 red--text" prepend-icon="mdi-content-paste" variant="outlined">PASTE</v-btn>
                 <v-btn class="mx-2 red--text" prepend-icon="mdi-delete-outline" variant="outlined">DELETE</v-btn>
             </div>
@@ -47,7 +54,7 @@
             </v-col>
         </v-row>
         <v-data-table-server class="row-height-50" v-model="selected" show-select :headers="headers"
-            :items="serverItems" :items-length="totalItems" :loading="loading" :search="search" item-value="name"
+            :items="serverItems" :items-length="totalItems" :loading="loading" :search="search" item-value="title"
             @update:options="loadItems" @click:row="handleCheckBoxClick" v-model:items-per-page="itemsPerPage">
 
             <template v-slot:item.logo="{ item }">
@@ -57,190 +64,138 @@
     </v-container>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, reactive, defineEmits, onMounted } from 'vue';
+import type ISeasonEvent from '~/interfaces/season/event';
+import { useRouter } from 'vue-router';
 
-const events = [
-    {
-        id: "1",
-        title: 'Pre Winter Games',
-        eventType: "weekly",
-        startTime: "25 Aug 2024",
-        endTime: "30 Aug 2024",
-        qualifierDuration: "1 Days",
-        tournamentDuration: "5 Days",
-        tickets: "5",
-        prizePool: "$100"
-    },
-    {
-        id: "1",
-        title: 'Pre Winter Games',
-        eventType: "weekly",
-        startTime: "25 Aug 2024",
-        endTime: "30 Aug 2024",
-        qualifierDuration: "1 Days",
-        tournamentDuration: "5 Days",
-        tickets: "5",
-        prizePool: "$100"
-    },
-    {
-        id: "1",
-        title: 'Pre Winter Games',
-        eventType: "weekly",
-        startTime: "25 Aug 2024",
-        endTime: "30 Aug 2024",
-        qualifierDuration: "1 Days",
-        tournamentDuration: "5 Days",
-        tickets: "5",
-        prizePool: "$100"
-    },
-    {
-        id: "1",
-        title: 'Pre Winter Games',
-        eventType: "weekly",
-        startTime: "25 Aug 2024",
-        endTime: "30 Aug 2024",
-        qualifierDuration: "1 Days",
-        tournamentDuration: "5 Days",
-        tickets: "5",
-        prizePool: "$100"
-    },
-    {
-        id: "1",
-        title: 'Pre Winter Games',
-        eventType: "weekly",
-        startTime: "25 Aug 2024",
-        endTime: "30 Aug 2024",
-        qualifierDuration: "1 Days",
-        tournamentDuration: "5 Days",
-        tickets: "5",
-        prizePool: "$100"
-    },
-    {
-        id: "1",
-        title: 'Pre Winter Games',
-        eventType: "weekly",
-        startTime: "25 Aug 2024",
-        endTime: "30 Aug 2024",
-        qualifierDuration: "1 Days",
-        tournamentDuration: "5 Days",
-        tickets: "5",
-        prizePool: "$100"
-    },
-    {
-        id: "1",
-        title: 'Pre Winter Games',
-        eventType: "weekly",
-        startTime: "25 Aug 2024",
-        endTime: "30 Aug 2024",
-        qualifierDuration: "1 Days",
-        tournamentDuration: "5 Days",
-        tickets: "5",
-        prizePool: "$100"
-    },
-    {
-        id: "1",
-        title: 'Pre Winter Games',
-        eventType: "weekly",
-        startTime: "25 Aug 2024",
-        endTime: "30 Aug 2024",
-        qualifierDuration: "1 Days",
-        tournamentDuration: "5 Days",
-        tickets: "5",
-        prizePool: "$100"
-    },
-    {
-        id: "1",
-        title: 'Pre Summer Games',
-        eventType: "weekly",
-        startTime: "25 Aug 2024",
-        endTime: "30 Aug 2024",
-        qualifierDuration: "1 Days",
-        tournamentDuration: "5 Days",
-        tickets: "5",
-        prizePool: "$100"
-    },
+// Define emits
+const emit = defineEmits(['championship-emit']);
+const props = defineProps({
+    events: {
+        type: Object as PropType<ISeasonEvent[]>,
+        required: true
+    }
+});
 
-]
+// Sample events data
+const events: ISeasonEvent[] = props.events;
+
+// Function to get current ISO 8601 with timezone offset
+function getCurrentIso8601WithTimezone() {
+    const now = new Date();
+    const isoString = now.toISOString();
+    console.log("ISO string is ", isoString);
+
+    const offset = -now.getTimezoneOffset();
+    const offsetHours = Math.floor(Math.abs(offset) / 60);
+    const offsetMinutes = Math.abs(offset) % 60;
+    const sign = offset >= 0 ? '+' : '-';
+    const formattedOffset = `${sign}${String(offsetHours).padStart(2, '0')}:${String(offsetMinutes).padStart(2, '0')}`;
+
+    return isoString.replace('Z', formattedOffset);
+}
+
+// Default data for event form
+const currentEvent: ISeasonEvent = {
+    id: 1,
+    title: 'dummy title',
+    eventType: 'weekly',
+    startTime: '2022-06-15T13:15:00+05:00',
+    endTime: '2022-06-15T13:15:00+05:00',
+    qualifierDuration: 0,
+    tournamentDuration: 0,
+    tickets: 0,
+    prizePool: 0
+};
+
+// Fake API for fetching data
 const FakeAPI = {
-    async fetch({ page, itemsPerPage, name }) {
+    async fetch({ page, itemsPerPage, name }: any) {
         console.log("name = " + name);
         const start = (page - 1) * itemsPerPage;
         const end = start + itemsPerPage;
-        console.log(itemsPerPage);
         let items = events.slice();
-        // apply search[name parameter] filter on items....
         items = items.filter(item => item.title.toLowerCase().includes(name.toLowerCase()));
-
-        // now paginate the selected items....
-        let paginatedItems = items.slice(start, end);
+        const paginatedItems = items.slice(start, end);
         console.log(paginatedItems);
         return {
             items: paginatedItems,
             total: items.length
         };
     }
+};
+
+// Reactive state
+const dialog = ref(false);
+const singleSelect = ref(false);
+const selected = ref<ISeasonEvent[]>([]);
+const itemsPerPage = ref(5);
+const search = ref('');
+const serverItems = ref<ISeasonEvent[]>([]);
+const loading = ref(true);
+const totalItems = ref(0);
+const seasonName = ref('');
+const calories = ref('');
+const anEvent = ref<ISeasonEvent>(currentEvent);
+
+// Load items from FakeAPI
+async function loadItems({ page, itemsPerPage }: any) {
+    loading.value = true;
+    const { items, total } = await FakeAPI.fetch({ page, itemsPerPage, name: seasonName.value });
+    serverItems.value = items;
+    totalItems.value = total;
+    loading.value = false;
 }
 
-export default {
-    data: () => ({
-        dialog:false,
-        singleSelect: false,
-        selected: [],
-        itemsPerPage: 5,
-        headers: [
-            {
-                title: 'ID',
-                align: 'start',
-                sortable: false,
-                key: 'id',
-            },
-            { title: 'Title', key: 'title', align: 'start', sortable: false },
-            { title: 'Event Type', key: 'eventType', align: 'end' },
-            { title: 'Start Time', key: 'startTime', align: 'end' },
-            { title: 'End Time', key: 'endTime', align: 'end' },
-            { title: "Qualifier Duration", key: "qualifierDuration", align: "end" },
-            { title: 'Tournament Duration', key: 'tournamentDuration', align: 'end' },
-            { title: "Tickets", key: "tickets", align: "end" },
-            { title: "Prize Pool", key: "prizePool", align: "end" },
-        ],
-        search: '',
-        serverItems: [],
-        loading: true,
-        totalItems: 0,
-        seasonName: "",
-        calories: ""
-    }),
-    methods: {
-        loadItems({ page, itemsPerPage }) {
-            this.loading = true
-            let name = this.seasonName;
-            FakeAPI.fetch({ page, itemsPerPage, name }).then(({ items, total }) => {
-                this.serverItems = items
-                this.totalItems = total
-                this.loading = false
-            })
-        },
-
-        handleCheckBoxClick(event) {
-            console.log(event);
-        },
-
-        handleTableSearch() {
-            this.loadItems({
-                page: 1,
-                itemsPerPage: this.itemsPerPage,
-                sortBy: []
-            });
-        },
-
-        handleCreateSeasons() {
-            const router = useRouter();
-            router.push('/seasons/create');
-        },
-    },
+// Handle checkbox click
+function handleCheckBoxClick(event: any) {
+    console.log(event);
 }
+
+// Handle table search
+function handleTableSearch() {
+    loadItems({ page: 1, itemsPerPage: itemsPerPage.value });
+}
+
+// Handle season creation navigation
+function handleCreateSeasons() {
+    const router = useRouter();
+    router.push('/seasons/create');
+}
+
+// Emit event form data
+function eventFormEmit(newEventFormData: ISeasonEvent) {
+    console.log(anEvent.value);
+}
+
+// Submit event form
+function submitEventForm() {
+    console.log("Going to validate the form");
+    const seasonValidator = useSeasonValidators(); // Assume this is a composable for validation
+    let formValid = false;
+
+    if (seasonValidator.validateSeasonEvent(anEvent.value)) {
+        let copyCurrentEvent = { ...currentEvent };
+        events.push(copyCurrentEvent);
+        handleTableSearch();
+        formValid = true;
+        emit('championship-emit', events);
+    }
+
+    dialog.value = !formValid;
+}
+
+// copy all events to clipboard....
+function copyEvents() {
+    navigator.clipboard.writeText(JSON.stringify(events));
+}
+
+// Initial data load
+onMounted(() => {
+    loadItems({ page: 1, itemsPerPage: itemsPerPage.value });
+});
 </script>
-
 /*
 
 seasons:

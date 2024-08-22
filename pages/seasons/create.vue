@@ -1,5 +1,7 @@
 <template>
     <h1 class="text-2xl md:font-bold">Create New Season</h1>
+    <v-btn @click="copySeason" class="mx-2 red--text" prepend-icon="mdi-content-copy"
+    variant="outlined">COPY SEASON</v-btn>
     <v-stepper hide-actions v-model="currentStep" :items="['Meta', 'View', 'Championships', 'Save']">
 
         <template v-slot:item.1>
@@ -16,7 +18,7 @@
 
         <template v-slot:item.3>
             <v-card flat>
-                <SeasonsChampionships />
+                <SeasonsChampionships @championship-emit="handleChildEmit" :events="seasonData.eventsData"/>
             </v-card>
         </template>
         <template v-slot:item.4>
@@ -38,6 +40,7 @@
 
 <script setup lang="ts">
 import { validate } from '@jsonforms/core';
+import type ISeasonEvent from '~/interfaces/season/event';
 import type IMeta from '~/interfaces/season/meta';
 import type IView from '~/interfaces/season/view';
 
@@ -48,7 +51,7 @@ let stepValidated = ref(validationStates[0]);
 const seasonValidators = useSeasonValidators();
 
 let metaData: IMeta = {
-    seasonId: 2,
+    seasonId: crypto.randomUUID(),
     seasonNumber: 1,
     seasonTitle: "",
     theme: 1,
@@ -68,9 +71,12 @@ let viewData: IView = reactive({
     buttonText: ""
 });
 
+let eventsData:ISeasonEvent[] = [];
+
 let seasonData = {
     metaData:metaData,
-    viewData:viewData
+    viewData:viewData,
+    eventsData:eventsData
 }
 
 function moveNext() {
@@ -92,7 +98,7 @@ function handleValidation(){
     let valid = false;
     console.log("current step is " + currentStep.value);
     if(currentStep.value === 1)
-        valid= true//seasonValidators.validateSeasonMeta(seasonData.metaData);
+        valid= seasonValidators.validateSeasonMeta(seasonData.metaData);
     else if(currentStep.value === 2)
         valid = true// seasonValidators.validateSeasonView(seasonData.viewData);
     else if(currentStep.value === 3)
@@ -106,7 +112,12 @@ function handleValidation(){
 function handleChildEmit(newSeasonData: any) {
     console.log("handle child emit");
     console.log(newSeasonData);
+    console.log(seasonData);
     handleValidation();
+}
+
+function copySeason(){
+    navigator.clipboard.writeText(JSON.stringify(seasonData));
 }
 // export default {
 //     data: ()=>({
