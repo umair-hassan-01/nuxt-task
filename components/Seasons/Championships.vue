@@ -98,7 +98,7 @@ function getCurrentIso8601WithTimezone() {
 
 // Default data for event form
 const currentEvent: ISeasonEvent = {
-    id: 1,
+    eventId: crypto.randomUUID(),
     title: 'dummy title',
     eventType: 'weekly',
     startTime: '2022-06-15T13:15:00+05:00',

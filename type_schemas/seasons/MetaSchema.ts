@@ -28,6 +28,13 @@ const MetaSchema: JSONSchemaType<IMeta> = {
         "endTime": {
             "type": "string",
             "format": "date-time"
+        },
+        "created_at":{
+            "type":"string",
+            "nullable":true
+        },
+        "updated_at":{
+
         }
 
     },

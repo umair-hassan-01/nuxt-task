@@ -1,107 +1,114 @@
 <template>
     <h1 class="text-2xl md:font-bold">Create New Season</h1>
-    <v-btn @click="copySeason" class="mx-2 red--text" prepend-icon="mdi-content-copy"
-    variant="outlined">COPY SEASON</v-btn>
-    <v-stepper hide-actions v-model="currentStep" :items="['Meta', 'View', 'Championships', 'Save']">
+    <h1 v-show="loading">Loading....</h1>
+    <div v-if="seasonData">
 
-        <template v-slot:item.1>
-            <v-card flat>
-                <SeasonsMeta @test-emit="handleChildEmit" :metaData="seasonData.metaData" />
-            </v-card>
-        </template>
+        <v-btn @click="copySeason" class="mx-2 red--text" prepend-icon="mdi-content-copy" variant="outlined">COPY
+            SEASON</v-btn>
+        <v-stepper hide-actions v-model="currentStep" :items="['Meta', 'View', 'Championships', 'Save']">
 
-        <template v-slot:item.2>
-            <v-card flat>
-                <SeasonsView @season-view-emit="handleChildEmit" :viewData="seasonData.viewData" />
-            </v-card>
-        </template>
+            <template v-slot:item.1>
+                <v-card flat>
+                    <SeasonsMeta @test-emit="handleChildEmit" :metaData="seasonData.metaData" />
+                </v-card>
+            </template>
 
-        <template v-slot:item.3>
-            <v-card flat>
-                <SeasonsChampionships @championship-emit="handleChildEmit" :events="seasonData.eventsData"/>
-            </v-card>
-        </template>
-        <template v-slot:item.4>
-            <v-card flat>
-                <SeasonsSave />
-            </v-card>
-        </template>
+            <template v-slot:item.2>
+                <v-card flat>
+                    <SeasonsView @season-view-emit="handleChildEmit" :viewData="seasonData.viewData" />
+                </v-card>
+            </template>
 
-        <div class="flex justify-between mb-1 mx-1">
-            <v-btn @click="moveBack" :disabled="currentStep === 1">Back</v-btn>
-            <v-btn @click="moveNext" :disabled="(currentStep < 4) || !stepValidated">Submit</v-btn>
-            <v-btn @click="moveNext" v-if="!(currentStep === 4)" :disabled="!stepValidated">Next</v-btn>
-        </div>
+            <template v-slot:item.3>
+                <v-card flat>
+                    <SeasonsChampionships @championship-emit="handleChildEmit" :events="seasonData.eventsData" />
+                </v-card>
+            </template>
+            <template v-slot:item.4>
+                <v-card flat>
+                    <SeasonsSave />
+                </v-card>
+            </template>
 
-    </v-stepper>
+            <div class="flex justify-between mb-1 mx-1">
+                <v-btn @click="moveBack" :disabled="currentStep === 1">Back</v-btn>
+                <v-btn @click="moveNext" :disabled="(currentStep < 4) || !stepValidated">Submit</v-btn>
+                <v-btn @click="moveNext" v-if="!(currentStep === 4)" :disabled="!stepValidated">Next</v-btn>
+            </div>
+
+        </v-stepper>
 
 
+    </div>
 </template>
 
 <script setup lang="ts">
 import { validate } from '@jsonforms/core';
 import type ISeasonEvent from '~/interfaces/season/event';
 import type IMeta from '~/interfaces/season/meta';
+import type ISeason from '~/interfaces/season/season';
 import type IView from '~/interfaces/season/view';
 
 let currentStep = ref(1);
-
-let validationStates:boolean[] = [true,false,true,true];
+let loading = ref(true);
+let validationStates: boolean[] = [true, false, true, true];
 let stepValidated = ref(validationStates[0]);
 const seasonValidators = useSeasonValidators();
+const currentUUID = crypto.randomUUID();
 
-let metaData: IMeta = {
-    seasonId: crypto.randomUUID(),
-    seasonNumber: 1,
-    seasonTitle: "",
-    theme: 1,
-    startTime: "",
-    endTime: ""
-};
+let defaults = useDefaults();
+const route = useRoute();
 
-let viewData: IView = reactive({
-    seasonId: 1,
-    seasonNumber: 1,
-    seasonTitle: "",
-    ballColor: "",
-    clubUrl: "",
-    backgroundBlurUrl: "",
-    backgroundUrl: "",
-    description: "",
-    buttonText: ""
-});
+async function loadSeasons(): Promise<ISeason> {
 
-let eventsData:ISeasonEvent[] = [];
+    let season: ISeason;
+    let seasonId = route.query.seasonId;
+    
+    if (!seasonId) {
+        season = defaults.getDefaultSeason();
+    } else {
+        console.log("FETCH DATA");
+        const { data } = await useFetch(`/api/seasons/getSeason?seasonId=${seasonId}`);
+        const seasons = data.value as ISeason[];
+        const seasonData = {
+            metaData: JSON.parse(JSON.stringify(seasons[0].metaData)),
+            viewData: JSON.parse(JSON.stringify(seasons[0].viewData)),
+            eventsData: JSON.parse(JSON.stringify(seasons[0].eventsData))
+        }
+        console.log("FECTHED IT");
+        console.log(seasonData);
+        season = seasonData;
+    }
 
-let seasonData = {
-    metaData:metaData,
-    viewData:viewData,
-    eventsData:eventsData
+    loading.value = false;
+    return season;
 }
+
+let seasonData: ISeason = reactive(await loadSeasons());
 
 function moveNext() {
     console.log("Moving next");
-    if(currentStep.value < 4 && stepValidated.value){
+    if (currentStep.value < 4 && stepValidated.value) {
         currentStep.value++;
         stepValidated.value = validationStates[currentStep.value - 1];
     }
 }
 function moveBack() {
     console.log("Moving backward");
-    if(currentStep.value > 1){
+    if (currentStep.value > 1) {
         currentStep.value--;
         stepValidated.value = validationStates[currentStep.value - 1];
     }
 }
 
-function handleValidation(){
+function handleValidation() {
     let valid = false;
     console.log("current step is " + currentStep.value);
-    if(currentStep.value === 1)
-        valid= seasonValidators.validateSeasonMeta(seasonData.metaData);
-    else if(currentStep.value === 2)
+    if (currentStep.value === 1)
+        valid = seasonValidators.validateSeasonMeta(seasonData.metaData);
+    else if (currentStep.value === 2)
         valid = true// seasonValidators.validateSeasonView(seasonData.viewData);
-    else if(currentStep.value === 3)
+    else if (currentStep.value === 3)
         valid = true;
     else
         valid = true;
@@ -116,9 +123,10 @@ function handleChildEmit(newSeasonData: any) {
     handleValidation();
 }
 
-function copySeason(){
+function copySeason() {
     navigator.clipboard.writeText(JSON.stringify(seasonData));
 }
+
 // export default {
 //     data: ()=>({
 //         step:1,

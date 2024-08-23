@@ -1,6 +1,7 @@
 export default interface ISeasonEvent {
 
-    id: number;
+    eventId: string;
+    seasonId?:string;
     title: string;
     eventType: "daily" | "weekly" | "monthly";
     startTime: string;
@@ -9,4 +10,6 @@ export default interface ISeasonEvent {
     tournamentDuration: number;
     tickets: number;
     prizePool: number;
+    created_at?:string;
+    updated_at?:string;
 }

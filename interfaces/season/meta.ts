@@ -5,4 +5,6 @@ export default interface IMeta{
     theme:number
     startTime:string
     endTime:string
+    updated_at?:string
+    created_at?:string
 }

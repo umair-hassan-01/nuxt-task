@@ -9,8 +9,7 @@ const ViewSchema: JSONSchemaType<IView> = {
             "minimum": 1
         },
         "seasonId": {
-            "type": "number",
-            "minimum": 1
+            "type": "string"
         },
         "seasonTitle": {
             "type": "string",
@@ -46,7 +45,15 @@ const ViewSchema: JSONSchemaType<IView> = {
             "type": "string",
             "minLength": 3,
             "maxLength": 30
-            ,
+            
+        },
+        "created_at":{
+            "type":"string",
+            "nullable":true
+        },
+        "updated_at":{
+            "type":"string",
+            "nullable":true
         }
     },
     "required": ["backgroundBlurUrl", "backgroundUrl", "buttonText", "description", "seasonId", "seasonNumber", "seasonTitle", "ballColor", "clubUrl"],

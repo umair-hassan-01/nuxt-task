@@ -13,7 +13,7 @@ export default function useSeasonValidators(){
             return !isNaN(Date.parse(dateTime)); // Basic validation
         }
     });
-    
+
     function validateSeasonView(viewData:IView) : boolean{
         const viewSchema:JSONSchemaType<IView> = ViewSchema;
         const validator = ajv.compile(viewSchema);
@@ -39,9 +39,18 @@ export default function useSeasonValidators(){
         return false;
     }
 
+    function validateSeasonEvents(events:ISeasonEvent[]):{valid:boolean,index:number}{
+        let validation:boolean[] = [];
+        for(let i = 0;i < events.length;i++)
+            if(!validateSeasonEvent(events[i]))
+                return {valid:false,index:i};
+        return {valid:true , index:-1};
+    }
+
     return {
         validateSeasonView,
         validateSeasonMeta,
-        validateSeasonEvent
+        validateSeasonEvent,
+        validateSeasonEvents
     }
 }

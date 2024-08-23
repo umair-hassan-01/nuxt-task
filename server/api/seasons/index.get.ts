@@ -1,16 +1,47 @@
 import seasonQueries from "~/db/DAO/season";
+import IMeta from "~/interfaces/season/meta";
+import ISeason from "~/interfaces/season/season";
+import ISimplifiedSeason from "~/interfaces/season/simpleSeason";
 
-export default defineEventHandler(async (request)=>{
-    try{
-    // fetch all available seasons from database...
-    const query = getQuery(request);
-    const seasonId = query.seasonId;
+// seasonId:"1",
+// logo:'https://i.pinimg.com/564x/2a/35/d9/2a35d95e6861fa2cc4b991d9417f8b68.jpg',
+// title: 'Pre Winter Games',
+// date:"7 Aug 2024",
+// nakama_push:false,
+// events:2,
+// theme:4,
+// updated_at:"2024 Aug 29 10:00 AM",
 
-    const response = await seasonQueries().getAllSeasons({});
-    
-    return response;
-    }catch(exception: any){
+export default defineEventHandler(async (request):Promise<ISimplifiedSeason[]> => {
+    try {
+        // fetch all available seasons from database...
+        const query = getQuery(request);
+        let seasonId = undefined;
+        if(query.seasonId)
+            seasonId = query.seasonId.toString();
+
+        let simplifiedSeasons:ISimplifiedSeason[] = [];
+        const queries = seasonQueries();
+        const seasonMeta = await queries.getSeasonMeta(seasonId);
+        for(let i = 0;i < seasonMeta.length;i++){
+
+            let currentSimpleSeason:ISimplifiedSeason = {
+                date:seasonMeta[i].startTime,
+                seasonId:seasonMeta[i].seasonId,
+                logo:'https://i.pinimg.com/564x/2a/35/d9/2a35d95e6861fa2cc4b991d9417f8b68.jpg',
+                title:seasonMeta[i].seasonTitle,
+                nakamaPush:false,
+                events:2,
+                theme:seasonMeta[i].theme,
+                updated_at:seasonMeta[i].updated_at as string
+            };
+
+            simplifiedSeasons.push(currentSimpleSeason);
+        }
+
+        return simplifiedSeasons;
+    } catch (exception: any) {
         console.log(exception);
-        return "Some error occured";
+        return [];
     }
 })

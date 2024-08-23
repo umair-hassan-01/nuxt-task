@@ -1,6 +1,6 @@
 export default interface IView{
     seasonNumber:number
-    seasonId:number
+    seasonId:string
     seasonTitle:string
     backgroundUrl:string
     backgroundBlurUrl:string
@@ -8,4 +8,6 @@ export default interface IView{
     description:string
     ballColor:string
     clubUrl:string
+    created_at?:string
+    updated_at?:string
 }
