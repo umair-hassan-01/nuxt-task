@@ -44,6 +44,7 @@
 
 <script setup lang="ts">
 import { validate } from '@jsonforms/core';
+import type { ICreateSeasonResponse } from '~/interfaces/Response';
 import type ISeasonEvent from '~/interfaces/season/event';
 import type IMeta from '~/interfaces/season/meta';
 import type ISeason from '~/interfaces/season/season';
@@ -76,9 +77,21 @@ async function loadSeasons(): Promise<ISeason> {
         season = defaults.getDefaultSeason();
     } else {
         // user want to edit an existing season...
-        season = defaults.getDefaultSeason();
+        const response = await useFetch(`/api/seasons/getSeason?seasonId=${seasonId}`);
+        console.log(response);
+        const responsePayload = response.data.value as ISeason[];
+
+        if(responsePayload !== null){
+            seasonState.value.metaData = responsePayload[0].metaData;
+            seasonState.value.eventsData = responsePayload[0].eventsData;
+            season = responsePayload[0];
+        }
+        else
+            season = defaults.getDefaultSeason();
     }
 
+    console.log("state was ");
+    console.log(seasonState.value);
     loading.value = false;
     return season;
 }

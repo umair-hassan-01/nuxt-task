@@ -1,4 +1,5 @@
 import seasonQueries from "~/db/DAO/season";
+import { ICreateSeasonResponse } from "~/interfaces/Response";
 import ISeason from "~/interfaces/season/season";
 
 export default defineEventHandler(async (request) => {
@@ -14,10 +15,20 @@ export default defineEventHandler(async (request) => {
         let response:ISeason[] = [];
 
         // fetch the season data from database..
-        response = await queries.getAllSeasons({
+        const temp:any[] = await queries.getAllSeasons({
             seasonId:seasonId
         });
+        
+        temp.forEach(t=>{
+            const eventsData = t.events;
+            delete t.events;
+            const currentSeason:ISeason = {
+                metaData:t,
+                eventsData:eventsData
+            };
 
+            response.push(currentSeason);
+        })
         return response;
 
     } catch (exception: any) {
