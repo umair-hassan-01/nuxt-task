@@ -1,0 +1,9 @@
+{
+    "databaseConfigs":{
+        "tableNames":{
+            "seasonTable":"season",
+            "seasonEventsTable":"SEASON_EVENT",
+            "seasonViewTable":"SEASON_VIEW"
+        }
+    }
+}

@@ -1,5 +1,5 @@
 export default interface IView{
-    seasonNumber:number
+    seasonNumber?:number
     seasonId:string
     seasonTitle:string
     backgroundUrl:string

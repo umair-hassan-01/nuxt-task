@@ -4,6 +4,5 @@ import type IView from "./view";
 
 export default interface ISeason{
     metaData:IMeta
-    viewData:IView
     eventsData:ISeasonEvent[]
 }

@@ -9,19 +9,19 @@
 
             <template v-slot:item.1>
                 <v-card flat>
-                    <SeasonsMeta @test-emit="handleChildEmit" :metaData="seasonData.metaData" />
+                    <SeasonsMeta />
                 </v-card>
             </template>
 
             <template v-slot:item.2>
                 <v-card flat>
-                    <SeasonsView @season-view-emit="handleChildEmit" :viewData="seasonData.viewData" />
+                    <SeasonsView />
                 </v-card>
             </template>
 
             <template v-slot:item.3>
                 <v-card flat>
-                    <SeasonsChampionships @championship-emit="handleChildEmit" :events="seasonData.eventsData" />
+                    <SeasonsChampionships />
                 </v-card>
             </template>
             <template v-slot:item.4>
@@ -32,7 +32,7 @@
 
             <div class="flex justify-between mb-1 mx-1">
                 <v-btn @click="moveBack" :disabled="currentStep === 1">Back</v-btn>
-                <v-btn @click="moveNext" :disabled="(currentStep < 4) || !stepValidated">Submit</v-btn>
+                <v-btn @click="submitSeason" :disabled="(currentStep < 4) || !stepValidated">Submit</v-btn>
                 <v-btn @click="moveNext" v-if="!(currentStep === 4)" :disabled="!stepValidated">Next</v-btn>
             </div>
 
@@ -48,12 +48,19 @@ import type ISeasonEvent from '~/interfaces/season/event';
 import type IMeta from '~/interfaces/season/meta';
 import type ISeason from '~/interfaces/season/season';
 import type IView from '~/interfaces/season/view';
+import MetaSchema from '~/type_schemas/seasons/MetaSchema';
 
 let currentStep = ref(1);
 let loading = ref(true);
-let validationStates: boolean[] = [true, false, true, true];
+
+// validationState[i] represents that ith step of current stepper is validated or not...
+let validationStates: boolean[] = [false, false, false, false];
+// setpValidated -> current step is validate or not
 let stepValidated = ref(validationStates[0]);
+
 const seasonValidators = useSeasonValidators();
+const helpers = useHelpers();
+
 const currentUUID = crypto.randomUUID();
 
 let defaults = useDefaults();
@@ -65,34 +72,30 @@ async function loadSeasons(): Promise<ISeason> {
     let seasonId = route.query.seasonId;
     
     if (!seasonId) {
+        // user want to add a new season...
         season = defaults.getDefaultSeason();
     } else {
-        console.log("FETCH DATA");
-        const { data } = await useFetch(`/api/seasons/getSeason?seasonId=${seasonId}`);
-        const seasons = data.value as ISeason[];
-        const seasonData = {
-            metaData: JSON.parse(JSON.stringify(seasons[0].metaData)),
-            viewData: JSON.parse(JSON.stringify(seasons[0].viewData)),
-            eventsData: JSON.parse(JSON.stringify(seasons[0].eventsData))
-        }
-        console.log("FECTHED IT");
-        console.log(seasonData);
-        season = seasonData;
+        // user want to edit an existing season...
+        season = defaults.getDefaultSeason();
     }
 
     loading.value = false;
     return season;
 }
 
+// create a reactive state for season form so it can be shared among components...
+let seasonState = useState('seasonState' , ()=>defaults.getDefaultSeason());
 let seasonData: ISeason = reactive(await loadSeasons());
 
 function moveNext() {
     console.log("Moving next");
     if (currentStep.value < 4 && stepValidated.value) {
         currentStep.value++;
+        handleValidation();
         stepValidated.value = validationStates[currentStep.value - 1];
     }
 }
+
 function moveBack() {
     console.log("Moving backward");
     if (currentStep.value > 1) {
@@ -105,52 +108,38 @@ function handleValidation() {
     let valid = false;
     console.log("current step is " + currentStep.value);
     if (currentStep.value === 1)
-        valid = seasonValidators.validateSeasonMeta(seasonData.metaData);
+        valid = helpers.validateSchema(seasonState.value.metaData , MetaSchema);
     else if (currentStep.value === 2)
-        valid = true// seasonValidators.validateSeasonView(seasonData.viewData);
-    else if (currentStep.value === 3)
-        valid = true;
+        valid = helpers.validateSchema(seasonState.value.metaData , MetaSchema);
     else
         valid = true;
 
     stepValidated.value = valid;
     validationStates[currentStep.value] = valid;
 }
-function handleChildEmit(newSeasonData: any) {
-    console.log("handle child emit");
-    console.log(newSeasonData);
-    console.log(seasonData);
-    handleValidation();
+
+
+// submit season data to backend...
+async function submitSeason(){
+    try{
+        const {data} = await useFetch("/api/seasons/create" , {
+            "method":"POST",
+            "body":seasonState.value
+        });
+        console.log(data);
+        const router = useRouter();
+        router.push('/seasons');
+    }catch(error:any){
+        console.log("while submitting form");
+        console.log(error);
+    }
 }
+watch(seasonState.value , (newSeasonState)=>{
+    handleValidation();
+});
 
 function copySeason() {
-    navigator.clipboard.writeText(JSON.stringify(seasonData));
+    navigator.clipboard.writeText(JSON.stringify(seasonState.value));
 }
 
-// export default {
-//     data: ()=>({
-//         step:1,
-//         currentStep:1
-//     }),
-//     methods:{
-//         moveNext(){
-//             console.log("Moving next");
-//         },
-//         moveBack(){
-//             console.log("Moving backward");
-//         },
-//         handleMovement(step){
-//             if(step < this.currentStep)
-//                 this.moveBack();
-//             else if(step > this.currentStep)
-//                 this.moveNext();
-
-//                 this.currentStep = step;
-//         },
-//         handleChildEmit(params){
-//             console.log("handle child emit");
-//             console.log(params);
-//         }
-//     }
-// }
 </script>

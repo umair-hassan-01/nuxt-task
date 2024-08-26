@@ -1,6 +1,6 @@
 <template>
     <div>
-        <JsonForms :data="metaData" :schema="schema" :uischema="uischema" :renderers="renderers" @change="onChange" />
+        <JsonForms :data="seasonState.metaData" :schema="schema" :uischema="uischema" :renderers="renderers" @change="onChange" />
     </div>
 </template>     
 
@@ -12,6 +12,7 @@ import UserSchema from '~/type_schemas/UserSchema'; // Adjust the path if necess
 import type { JSONSchemaType } from 'ajv';
 import type IMeta from '~/interfaces/season/meta';
 import MetaSchema from '~/type_schemas/seasons/MetaSchema';
+import type ISeason from '~/interfaces/season/season';
 
 // Merge styles if needed
 const myStyles = mergeStyles(defaultStyles, { control: { label: "mylabel" } });
@@ -68,34 +69,16 @@ const uischema = {
     ],
 };
 
-// get the parent props
-const props = defineProps({
-    metaData:{
-        type:Object as PropType<IMeta>,
-        required:true
-    }
-});
-
-// Define the form data
-// const metaData:IMeta = reactive({
-//     seasonNumber:1,
-//     seasonId:1,
-//     seasonTitle:"",
-//     theme:1,
-//     startTime:"",
-//     endTime:""
-// });
-
-const metaData:IMeta = reactive(props.metaData);
+const seasonState = useState('seasonState') as Ref<ISeason>;
 
 const emit = defineEmits(['test-emit']);
+
 // Handle form changes
 const onChange = (event: JsonFormsChangeEvent) => {
-    Object.assign(metaData , event.data);
-    console.log(metaData);
-    emit('test-emit' , metaData);
+    Object.assign(seasonState.value.metaData , event.data);
+    console.log("New season state");
+    console.log(seasonState.value);
 };
-
 
 // Provide the custom renderers and styles
 const renderers = Object.freeze([...vuetifyRenderers]);
@@ -103,7 +86,5 @@ const renderers = Object.freeze([...vuetifyRenderers]);
 </script>
 
 <style scoped>
-/* Apply custom styles here */
 @import '~/assets/css/loginform.css';
-/* Adjust the path if necessary */
 </style>

@@ -1,6 +1,6 @@
 import Ajv, { JSONSchemaType, ValidateFunction } from "ajv"
 import db from "~/db/db";
-import { BaseResponse } from "~/interfaces/Response";
+import { IBaseResponse } from "~/interfaces/Response";
 import { IUser } from "~/interfaces/user";
 import UserSchema from "~/type_schemas/UserSchema";
 
@@ -12,7 +12,7 @@ function compileSchema(): ValidateFunction<IUser> {
     return validate;
 }
 
-export default defineEventHandler(async (request): Promise<BaseResponse> => {
+export default defineEventHandler(async (request): Promise<IBaseResponse> => {
     try {
         const requestData: IUser = getQuery(request);
 
@@ -35,8 +35,7 @@ export default defineEventHandler(async (request): Promise<BaseResponse> => {
         console.log(user_id);
         return {
             success: true,
-            message: "user is added with id " + user_id.user_id,
-            status_code: 200
+            message: "user is added with id " + user_id.user_id
         }
     } catch (error: any) {
         setResponseStatus(request, 500);
@@ -44,8 +43,7 @@ export default defineEventHandler(async (request): Promise<BaseResponse> => {
         console.log(error);
         return {
             success: false,
-            message: "error message = " + error.message,
-            status_code: 500
+            message: "error message = " + error.message
         }
     }
 

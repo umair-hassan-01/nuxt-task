@@ -11,27 +11,20 @@ export default function useDefaults(){
             seasonNumber: 1,
             seasonTitle: "",
             theme: 1,
-            startTime: "",
-            endTime: ""
-        };
-        
-        let viewData: IView = {
-            seasonId: currentUUId,
-            seasonNumber: 1,
-            seasonTitle: "",
-            ballColor: "",
-            clubUrl: "",
-            backgroundBlurUrl: "",
-            backgroundUrl: "",
-            description: "",
-            buttonText: ""
+            startTime: "2022-06-15T13:15:00+05:00",
+            endTime: "2022-06-15T13:15:00+05:00",
+            ballColor: "white",
+            clubUrl: "localhost",
+            backgroundBlurUrl: "localhost",
+            backgroundUrl: "localhost",
+            description: "dummy",
+            buttonText: "white"
         };
         
         let eventsData: ISeasonEvent[] = [];
 
         let seasonData = {
             metaData:metaData,
-            viewData:viewData,
             eventsData:eventsData
         }
 

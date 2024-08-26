@@ -14,5 +14,5 @@ export default interface ISimplifiedSeason{
     nakamaPush:boolean
     events:number
     theme:number
-    update_at:string
+    updated_at:string
 }

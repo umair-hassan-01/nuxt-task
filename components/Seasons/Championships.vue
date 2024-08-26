@@ -68,33 +68,10 @@
 import { ref, reactive, defineEmits, onMounted } from 'vue';
 import type ISeasonEvent from '~/interfaces/season/event';
 import { useRouter } from 'vue-router';
+import type ISeason from '~/interfaces/season/season';
 
-// Define emits
-const emit = defineEmits(['championship-emit']);
-const props = defineProps({
-    events: {
-        type: Object as PropType<ISeasonEvent[]>,
-        required: true
-    }
-});
-
-// Sample events data
-const events: ISeasonEvent[] = props.events;
-
-// Function to get current ISO 8601 with timezone offset
-function getCurrentIso8601WithTimezone() {
-    const now = new Date();
-    const isoString = now.toISOString();
-    console.log("ISO string is ", isoString);
-
-    const offset = -now.getTimezoneOffset();
-    const offsetHours = Math.floor(Math.abs(offset) / 60);
-    const offsetMinutes = Math.abs(offset) % 60;
-    const sign = offset >= 0 ? '+' : '-';
-    const formattedOffset = `${sign}${String(offsetHours).padStart(2, '0')}:${String(offsetMinutes).padStart(2, '0')}`;
-
-    return isoString.replace('Z', formattedOffset);
-}
+let seasonState = useState('seasonState') as Ref<ISeason>;
+const events: ISeasonEvent[] = seasonState.value.eventsData;
 
 // Default data for event form
 const currentEvent: ISeasonEvent = {
@@ -180,7 +157,6 @@ function submitEventForm() {
         events.push(copyCurrentEvent);
         handleTableSearch();
         formValid = true;
-        emit('championship-emit', events);
     }
 
     dialog.value = !formValid;

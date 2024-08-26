@@ -1,104 +1,164 @@
-import knex from "knex"
+import knex, { Knex } from "knex"
 import db from "../db"
 import type IMeta from "~/interfaces/season/meta";
 import type IView from "~/interfaces/season/view";
 import type ISeasonEvent from "~/interfaces/season/event";
+import type ISeason from "~/interfaces/season/season";
+import * as dbconfig from "~/db/tableConfigs.json";
 
-function seasonQueries(){
-    interface ISeasonFilter{
-        name?:string
-        id?:number
+function seasonQueries() {
+    interface ISeasonFilter {
+        name?: string
+        seasonId?: string
     };
 
-    async function getAllSeasons(filter : ISeasonFilter){
-        const response = await (
-            db
-            .select('*')
-            .from('Season')
-            .join('SEASON_VIEW' , 'Season.seasonId' , '=' , 'SEASON_VIEW.seasonId')
-            .join('SEASON_EVENT' , 'Season.seasonId', '=','SEASON_VIEW.seasonId')
-        )
-        return response;
+    const tableNames = dbconfig.default.databaseConfigs.tableNames;
+
+    async function getAllSeasons(filter: ISeasonFilter): Promise<any> {
+
+        return new Promise((resolve, reject) => {
+            const query =
+                db(`${tableNames.seasonTable}`)
+                    .innerJoin(`${tableNames.seasonEventsTable} as ev`, `${tableNames.seasonTable}.seasonId`, `=`, `ev.seasonId`)
+                    
+                    .select([`${tableNames.seasonTable}.*`, db.raw(`JSONB_AGG(ev.*) as events`)]);
+
+
+            // apply some conditional filters....
+            if (filter.seasonId !== undefined)
+                query.where(`${tableNames.seasonTable}.seasonId`, `=`, filter.seasonId);
+
+            // now execute the query...
+            query.groupBy([`${tableNames.seasonTable}.seasonId`])
+                .then(results => {
+                    resolve(results);
+                })
+                .then(null, error => {
+                    reject(error);
+                })
+        });
+
     }
 
-    async function getSeasonEvents(seasonId:string | undefined){
+    function countSeason(filter : ISeasonFilter):Promise<number>{
+        return new Promise(async (resolve , reject)=>{
+            try{
+    
+                let query = db(tableNames.seasonTable);
+                if(filter.seasonId)
+                    query.where('seasonId' , '=' , filter.seasonId);
+                query.then(rows=>{
+                    resolve(rows.length);
+                })
+
+            }catch(error:any){
+                reject(error);
+            }
+
+        });
+    }
+
+    function getSeasonMeta(filter : ISeasonFilter){
+        return new Promise((resolve , reject)=>{
+            let query = db(tableNames.seasonTable);
+
+            if(filter.seasonId !== undefined)
+                query.where('seasonId' , '=' , filter.seasonId);
+
+            query.select('*')
+            .then(seasons=>resolve(seasons))
+            .then(null , error=>reject(error));
+        })
+    }
+
+    function getSeasonEvents(filter : ISeasonFilter) {
+        return new Promise((resolve , reject)=>{
+            let query = db(tableNames.seasonEventsTable);
+
+            if(filter.seasonId !== undefined)
+                query.where('seasonId' , '=' , filter.seasonId);
+
+            query.select('*')
+            .then(events=>resolve(events))
+            .then(null , error=>reject(error));
+        })
+    }
+
+    // get seasonEvent by seasonId....
+    async function getEventById(eventId: string) {
+        try {
+            const response = await db<ISeasonEvent>(tableNames.seasonEventsTable)
+            .select(`*`)
+            .where(`eventId`, `=`, eventId);
+
+            return response;
+        } catch (error: any) {
+            throw error;
+        }
+    }
+
+    async function updateSeasonEvent(newEvent: ISeasonEvent[] , seasonId:string) {
+        try {
+            // first remove existing entries...
+            const response = await db(tableNames.seasonEventsTable)
+            .where('seasonId' , '=' , seasonId)
+            .del();
+
+            console.log(`${response} rows deleted`);
+
+            // now insert new data into table using existing function...
+            const updatedEvents = await addSeasonEvent(newEvent);
+            return updatedEvents;
+        } catch (error: any) {
+            throw error;
+        }
+    }
+
+    async function updateSeason(newSeasonData:IMeta){
         try{
-            let events:ISeasonEvent[] = [];
-            if(seasonId)
-                events = await db<ISeasonEvent>('SEASON_EVENT').select().where('seasonId','=',seasonId);
-            else 
-                events = await db<ISeasonEvent>('SEASON_EVENT').select();
-            return events;
+            const updatedSeason  = await db(tableNames.seasonTable)
+                                    .where('seasonId' , '=' , newSeasonData.seasonId)
+                                    .update(newSeasonData)
+                                    .returning('*');
+            return updatedSeason;
         }catch(error:any){
             throw error;
         }
     }
 
-    async function getSeasonView(seasonId:string | undefined){
+    async function addSeason(seasonData:IMeta){
         try{
-            let view:IView[] = [];
-            if(seasonId)
-                view = await db<IView>('SEASON_VIEW').select().where('SEASON_VIEW.seasonId','=',seasonId);
-            else
-                view = await db<IView>('SEASON_VIEW').select();
-            return view;
-        }catch(error : any){
-            throw error;
-        }
-    }
-
-    async function getSeasonMeta(seasonId:string | undefined){
-        try{
-            let meta:IMeta[] = [];
-            if(seasonId)
-                meta = await db('Season').select().where('seasonId' , '=',seasonId);
-            else
-                meta = await db('Season').select();
-            return meta;
-        }catch(error:any){
-            throw error;
-        }
-    }
-    async function addSeasonMeta(metaData:IMeta[]){
-        try{
-            // store meta data in the database... SEASON_META TABLE
-            console.log("STORING");
-            console.log(metaData);
-            const newMeta = await db<IMeta>('Season').insert(metaData).returning('*');
-            return newMeta;
-
-        }catch(error:any){
-            throw error;
-        }
-    }
-
-    async function addSeasonView(viewData:IView[]){
-        try{
-            // store view data in postgress data .... table -> SEASON_VIEW
-            const newView  = await db<IView>('SEASON_VIEW').insert(viewData).returning('*');
-            return newView;
-        }catch(error:any){
-            throw error;
-        }
-    }
-
-    async function addSeasonEvent(eventData:ISeasonEvent[]){
-        try{
-            const response = await db<ISeasonEvent>('SEASON_EVENT').insert(eventData).returning('*');
+            const response  = await db(tableNames.seasonTable).insert(seasonData).returning('*');
             return response;
         }catch(error:any){
             throw error;
         }
     }
 
+    async function addSeasonEvent(eventData: ISeasonEvent[]) {
+        try {
+            if(eventData.length === 0)
+                return [];
+            const createdEvents = await db<ISeasonEvent>(tableNames.seasonEventsTable)
+            .insert(eventData)
+            .returning(`*`);
+
+            return createdEvents;
+        } catch (error: any) {
+            throw error;
+        }
+    }
+
     return {
         getAllSeasons,
-        addSeasonMeta,
-        addSeasonView,
         addSeasonEvent,
+        getSeasonMeta,
         getSeasonEvents,
-        getSeasonView,
-        getSeasonMeta
+        updateSeasonEvent,
+        getEventById,
+        addSeason,
+        countSeason,
+        updateSeason
     }
 }
 

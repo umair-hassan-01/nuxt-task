@@ -22,16 +22,20 @@ export default defineEventHandler(async (request):Promise<ISimplifiedSeason[]> =
 
         let simplifiedSeasons:ISimplifiedSeason[] = [];
         const queries = seasonQueries();
-        const seasonMeta = await queries.getSeasonMeta(seasonId);
-        for(let i = 0;i < seasonMeta.length;i++){
+        const seasonMeta = (await queries.getSeasonMeta({
+            seasonId:seasonId
+        })) as IMeta[];
 
+        console.log(seasonMeta);
+        for(let i = 0;i < seasonMeta.length;i++){
+            
             let currentSimpleSeason:ISimplifiedSeason = {
                 date:seasonMeta[i].startTime,
                 seasonId:seasonMeta[i].seasonId,
                 logo:'https://i.pinimg.com/564x/2a/35/d9/2a35d95e6861fa2cc4b991d9417f8b68.jpg',
                 title:seasonMeta[i].seasonTitle,
                 nakamaPush:false,
-                events:2,
+                events:10,
                 theme:seasonMeta[i].theme,
                 updated_at:seasonMeta[i].updated_at as string
             };
@@ -41,6 +45,7 @@ export default defineEventHandler(async (request):Promise<ISimplifiedSeason[]> =
 
         return simplifiedSeasons;
     } catch (exception: any) {
+        console.log("EXCEPTION OCCURED");
         console.log(exception);
         return [];
     }

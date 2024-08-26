@@ -6,7 +6,8 @@ const ViewSchema: JSONSchemaType<IView> = {
     "properties": {
         "seasonNumber": {
             "type": "number",
-            "minimum": 1
+            "minimum": 1,
+            "nullable":true
         },
         "seasonId": {
             "type": "string"
@@ -56,7 +57,7 @@ const ViewSchema: JSONSchemaType<IView> = {
             "nullable":true
         }
     },
-    "required": ["backgroundBlurUrl", "backgroundUrl", "buttonText", "description", "seasonId", "seasonNumber", "seasonTitle", "ballColor", "clubUrl"],
+    "required": ["backgroundBlurUrl", "backgroundUrl", "buttonText", "description", "seasonId", "seasonTitle", "ballColor", "clubUrl"],
     "additionalProperties": false,
 };
 

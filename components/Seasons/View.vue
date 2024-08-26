@@ -4,7 +4,7 @@
     <div class="flex flex-row justify-between">
         <div>
             <div>
-                <JsonForms :data="viewData" :schema="viewSchema" :uischema="viewUiSchema" :renderers="renderers"
+                <JsonForms :data="seasonState.metaData" :schema="viewSchema" :uischema="viewUiSchema" :renderers="renderers"
                     @change="handleViewChange" />
             </div>
 
@@ -27,12 +27,15 @@ import { defaultStyles, mergeStyles, vuetifyRenderers } from '@jsonforms/vue-vue
 import UserSchema from '~/type_schemas/UserSchema'; // Adjust the path if necessary
 import type { JSONSchemaType } from 'ajv';
 import ViewSchema from '~/type_schemas/seasons/ViewSchema';
+import type ISeason from '~/interfaces/season/season';
+import MetaSchema from '~/type_schemas/seasons/MetaSchema';
+import type IMeta from '~/interfaces/season/meta';
 
 // Merge styles if needed
 const myStyles = mergeStyles(defaultStyles, { control: { label: "mylabel" } });
 
 
-const viewSchema: JSONSchemaType<IView> = ViewSchema;
+const viewSchema: JSONSchemaType<IMeta> = MetaSchema;
 
 const viewUiSchema = {
     type: 'VerticalLayout',
@@ -101,20 +104,12 @@ const viewUiSchema = {
 
     ],
 };
-
-const props = defineProps({
-    viewData: {
-        type: Object as PropType<IView>,
-        required: true
-    }
-});
-
-let viewData: IView = reactive(props.viewData);
-
-const emit = defineEmits(['season-view-emit']);
+// edit shared season state...
+let seasonState = useState('seasonState') as Ref<ISeason>;
 function handleViewChange(event: JsonFormsChangeEvent) {
-    Object.assign(viewData, event.data);
-    emit('season-view-emit' , viewData);
+    Object.assign(seasonState.value.metaData , event.data);
+    console.log("new season state");
+    console.log(seasonState.value);
 }
 
 const renderers = Object.freeze([...vuetifyRenderers]);
