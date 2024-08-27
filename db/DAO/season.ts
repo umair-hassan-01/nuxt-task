@@ -11,6 +11,7 @@ function seasonQueries() {
     interface ISeasonFilter {
         name?: string
         seasonId?: string
+        pushToNakama?: boolean
     };
 
     const tableNames = dbconfig.default.databaseConfigs.tableNames;
@@ -29,19 +30,24 @@ function seasonQueries() {
                         ) AS events
                     `)
                 ]);
-    
+
             // Apply some conditional filters....
             if (filter.seasonId !== undefined) {
                 query.where(`${tableNames.seasonTable}.seasonId`, `=`, filter.seasonId);
             }
-    
+
+            if (filter.pushToNakama !== undefined) {
+                query.where(`${tableNames.seasonTable}.pushToNakama`, '=', filter.pushToNakama);
+            }
+
             // Execute the query...
             query.groupBy([`${tableNames.seasonTable}.seasonId`])
                 .then(results => {
 
                     // sanitize some null events... due to left join..
-                    results.forEach(result=>{
-                        result.events = helper.sanitize(result.events)}
+                    results.forEach(result => {
+                        result.events = helper.sanitize(result.events)
+                    }
                     );
                     resolve(results);
                 })
@@ -51,50 +57,50 @@ function seasonQueries() {
                 });
         });
     }
-    
-    
 
-    function countSeason(filter : ISeasonFilter):Promise<number>{
-        return new Promise(async (resolve , reject)=>{
-            try{
-    
+
+
+    function countSeason(filter: ISeasonFilter): Promise<number> {
+        return new Promise(async (resolve, reject) => {
+            try {
+
                 let query = db(tableNames.seasonTable);
-                if(filter.seasonId)
-                    query.where('seasonId' , '=' , filter.seasonId);
-                query.then(rows=>{
+                if (filter.seasonId)
+                    query.where('seasonId', '=', filter.seasonId);
+                query.then(rows => {
                     resolve(rows.length);
                 })
 
-            }catch(error:any){
+            } catch (error: any) {
                 reject(error);
             }
 
         });
     }
 
-    function getSeasonMeta(filter : ISeasonFilter){
-        return new Promise((resolve , reject)=>{
+    function getSeasonMeta(filter: ISeasonFilter) {
+        return new Promise((resolve, reject) => {
             let query = db(tableNames.seasonTable);
 
-            if(filter.seasonId !== undefined)
-                query.where('seasonId' , '=' , filter.seasonId);
+            if (filter.seasonId !== undefined)
+                query.where('seasonId', '=', filter.seasonId);
 
             query.select('*')
-            .then(seasons=>resolve(seasons))
-            .then(null , error=>reject(error));
+                .then(seasons => resolve(seasons))
+                .then(null, error => reject(error));
         })
     }
 
-    function getSeasonEvents(filter : ISeasonFilter) {
-        return new Promise((resolve , reject)=>{
+    function getSeasonEvents(filter: ISeasonFilter) {
+        return new Promise((resolve, reject) => {
             let query = db(tableNames.seasonEventsTable);
 
-            if(filter.seasonId !== undefined)
-                query.where('seasonId' , '=' , filter.seasonId);
+            if (filter.seasonId !== undefined)
+                query.where('seasonId', '=', filter.seasonId);
 
             query.select('*')
-            .then(events=>resolve(events))
-            .then(null , error=>reject(error));
+                .then(events => resolve(events))
+                .then(null, error => reject(error));
         })
     }
 
@@ -102,8 +108,8 @@ function seasonQueries() {
     async function getEventById(eventId: string) {
         try {
             const response = await db<ISeasonEvent>(tableNames.seasonEventsTable)
-            .select(`*`)
-            .where(`eventId`, `=`, eventId);
+                .select(`*`)
+                .where(`eventId`, `=`, eventId);
 
             return response;
         } catch (error: any) {
@@ -111,12 +117,12 @@ function seasonQueries() {
         }
     }
 
-    async function updateSeasonEvent(newEvent: ISeasonEvent[] , seasonId:string) {
+    async function updateSeasonEvent(newEvent: ISeasonEvent[], seasonId: string) {
         try {
             // first remove existing entries...
             const response = await db(tableNames.seasonEventsTable)
-            .where('seasonId' , '=' , seasonId)
-            .del();
+                .where('seasonId', '=', seasonId)
+                .del();
 
             console.log(`${response} rows deleted`);
 
@@ -128,36 +134,58 @@ function seasonQueries() {
         }
     }
 
-    async function updateSeason(newSeasonData:IMeta){
-        try{
-            const updatedSeason  = await db(tableNames.seasonTable)
-                                    .where('seasonId' , '=' , newSeasonData.seasonId)
-                                    .update(newSeasonData)
-                                    .returning('*');
+    async function updateSeason(newSeasonData: IMeta) {
+        try {
+            const updatedSeason = await db(tableNames.seasonTable)
+                .where('seasonId', '=', newSeasonData.seasonId)
+                .update(newSeasonData)
+                .returning('*');
             return updatedSeason;
-        }catch(error:any){
+        } catch (error: any) {
             throw error;
         }
     }
 
-    async function addSeason(seasonData:IMeta){
-        try{
-            const response  = await db(tableNames.seasonTable).insert(seasonData).returning('*');
+    async function addSeason(seasonData: IMeta) {
+        try {
+            const response = await db(tableNames.seasonTable).insert(seasonData).returning('*');
             return response;
-        }catch(error:any){
+        } catch (error: any) {
             throw error;
         }
     }
 
     async function addSeasonEvent(eventData: ISeasonEvent[]) {
         try {
-            if(eventData.length === 0)
+            if (eventData.length === 0)
                 return [];
             const createdEvents = await db<ISeasonEvent>(tableNames.seasonEventsTable)
-            .insert(eventData)
-            .returning(`*`);
+                .insert(eventData)
+                .returning(`*`);
 
             return createdEvents;
+        } catch (error: any) {
+            throw error;
+        }
+    }
+
+    const batchUpdate = async (options: { table: string, column: string }, collection: any[]) => {
+        try {
+            const { table, column } = options;
+
+            const trx = await db.transaction();
+            try {
+                await Promise.all(collection.map(tuple =>
+                    db(table)
+                        .where(column, tuple[column])
+                        .update(tuple)
+                        .transacting(trx)
+                )
+                );
+                await trx.commit().returning('*');
+            } catch (error) {
+                await trx.rollback();
+            }
         } catch (error: any) {
             throw error;
         }
@@ -172,7 +200,8 @@ function seasonQueries() {
         getEventById,
         addSeason,
         countSeason,
-        updateSeason
+        updateSeason,
+        batchUpdate
     }
 }
 

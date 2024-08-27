@@ -3,7 +3,8 @@
     <div class="flex justify-end">
         <v-btn class="bg-primary" ize="x-large" prepend-icon="mdi-plus" @click="handleCreateSeasons(undefined)">Add New
             Season</v-btn>
-
+        <v-btn @click="pushToNakama" class="mx-2 red--text" prepend-icon="mdi-upload" color="indigo">Push To Nakama
+        </v-btn>
     </div>
     <div>
         <h1>selected = {{ selected }}</h1>
@@ -17,6 +18,7 @@
             </v-col>
             <v-col cols="4">
                 <v-btn class="bg-primary" size="large" @click="refreshTable">Search</v-btn>
+
             </v-col>
         </v-row>
         <v-data-table-server class="row-height-50" v-model="selected" show-select :headers="headers"
@@ -144,7 +146,7 @@ export default {
                 let currentSimpleSeason = {
                     date: meta.startTime,
                     seasonId: meta.seasonId,
-                    logo: 'https://i.pinimg.com/564x/2a/35/d9/2a35d95e6861fa2cc4b991d9417f8b68.jpg',
+                    logo: meta.iconUrl,
                     title: meta.seasonTitle,
                     nakamaPush: false,
                     events: season.length,
@@ -162,7 +164,6 @@ export default {
             const seasons = await useFetch('/api/seasons');
 
             simpleSeasons.value = JSON.parse(JSON.stringify(seasons.data.value));
-
             if (simpleSeasons.value === null)
                 simpleSeasons.value = [];
 
@@ -171,6 +172,24 @@ export default {
 
         copyEvent(item) {
             navigator.clipboard.writeText(JSON.stringify(item));
+        },
+
+        async pushToNakama() {
+            try {
+                const { data } = await useFetch('/api/seasons/nakamaPush', {
+                    "method": "POST",
+                    "body": {
+                        "selected":this.selected
+                    }
+                });
+                if (data.value.success) {
+                    // update values locally...
+                    await this.fetchSeasons(); // really ineffcient method .. we can update values locally
+                                              // or with help of server side pagination we can imporve it
+                }
+            } catch (error) {
+                console.log(error);
+            }
         }
     },
     async mounted() {

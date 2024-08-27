@@ -108,8 +108,6 @@ const viewUiSchema = {
 let seasonState = useState('seasonState') as Ref<ISeason>;
 function handleViewChange(event: JsonFormsChangeEvent) {
     Object.assign(seasonState.value.metaData, event.data);
-    console.log("new season state");
-    console.log(seasonState.value);
 }
 
 const renderers = Object.freeze([...vuetifyRenderers]);

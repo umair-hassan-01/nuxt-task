@@ -12,6 +12,7 @@
     "knexmigrate": "npx knex migrate:latest --knexfile db/knexfile"
   },
   "dependencies": {
+    "@heroiclabs/nakama-js": "^2.8.0",
     "@jsonforms/core": "^3.3.0",
     "@jsonforms/vue": "^3.3.0",
     "@jsonforms/vue-vuetify": "^3.3.0-preview.0",

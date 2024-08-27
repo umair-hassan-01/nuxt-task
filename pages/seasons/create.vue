@@ -79,7 +79,6 @@ async function loadSeasons(): Promise<ISeason> {
     } else {
         // user want to edit an existing season...
         const response = await useFetch(`/api/seasons/getSeason?seasonId=${seasonId}`);
-        console.log(response);
         const responsePayload = response.data.value as ISeason[];
 
         if(responsePayload !== null){
@@ -91,8 +90,6 @@ async function loadSeasons(): Promise<ISeason> {
             season = defaults.getDefaultSeason();
     }
 
-    console.log("state was ");
-    console.log(seasonState.value);
     loading.value = false;
     return season;
 }
@@ -102,7 +99,6 @@ let seasonState = useState('seasonState' , ()=>defaults.getDefaultSeason());
 let seasonData: ISeason = reactive(await loadSeasons());
 
 function moveNext() {
-    console.log("Moving next");
     if (currentStep.value < 4 && stepValidated.value) {
         currentStep.value++;
         handleValidation();
@@ -111,7 +107,6 @@ function moveNext() {
 }
 
 function moveBack() {
-    console.log("Moving backward");
     if (currentStep.value > 1) {
         currentStep.value--;
         stepValidated.value = validationStates[currentStep.value - 1];
@@ -120,7 +115,6 @@ function moveBack() {
 
 function handleValidation() {
     let valid = false;
-    console.log("current step is " + currentStep.value);
     if (currentStep.value === 1)
         valid = helpers.validateSchema(seasonState.value.metaData , MetaSchema);
     else if (currentStep.value === 2)
@@ -140,12 +134,10 @@ async function submitSeason(){
             "method":"POST",
             "body":seasonState.value
         });
-        console.log(data);
         const router = useRouter();
         seasonState.value = defaults.getDefaultSeason();
         router.push('/seasons');
     }catch(error:any){
-        console.log("while submitting form");
         console.log(error);
     }
 }

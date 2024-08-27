@@ -61,8 +61,6 @@ function selectIcon(imageUrl: string) {
 function confirmIcon() {
     seasonState.value.metaData.iconUrl = selectedIcon.value;
     dialog.value = false;
-    console.log("changed icon");
-    console.log(seasonState.value.metaData.iconUrl);
 }
 </script>
 

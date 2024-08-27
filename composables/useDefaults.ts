@@ -19,7 +19,8 @@ export default function useDefaults(){
             backgroundUrl: "localhost",
             description: "dummy",
             buttonText: "white",
-            iconUrl:"https://i.pinimg.com/564x/2a/35/d9/2a35d95e6861fa2cc4b991d9417f8b68.jpg"
+            iconUrl:"https://i.pinimg.com/564x/2a/35/d9/2a35d95e6861fa2cc4b991d9417f8b68.jpg",
+            pushToNakama:false
         };
         
         let eventsData: ISeasonEvent[] = [];

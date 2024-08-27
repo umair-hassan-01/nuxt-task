@@ -65,6 +65,10 @@ const MetaSchema: JSONSchemaType<IMeta> = {
             "minLength": 5,
             "maxLength": 200
         },
+        "pushToNakama":{
+            "type":"boolean"
+        }
+        ,
         "created_at": {
             "type": "string",
             "nullable": true
@@ -75,7 +79,7 @@ const MetaSchema: JSONSchemaType<IMeta> = {
         }
 
     },
-    "required": ["seasonId", "seasonTitle", "theme", "startTime", "endTime", "backgroundBlurUrl", "backgroundUrl", "buttonText", "description", "ballColor", "clubUrl" , "iconUrl"],
+    "required": ["seasonId", "seasonTitle", "theme", "startTime", "endTime", "backgroundBlurUrl", "backgroundUrl", "buttonText", "description", "ballColor", "clubUrl" , "iconUrl" , "pushToNakama"],
     "additionalProperties": false
 };
 

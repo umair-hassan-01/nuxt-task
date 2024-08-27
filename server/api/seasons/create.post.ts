@@ -43,6 +43,7 @@ export default defineEventHandler(async (event): Promise<ICreateSeasonResponse> 
 
         const meta = seasonData.metaData;
         delete meta.seasonNumber;
+        meta.pushToNakama = false;
 
         let existingCount = await queries.countSeason({
             seasonId: meta.seasonId
@@ -50,14 +51,10 @@ export default defineEventHandler(async (event): Promise<ICreateSeasonResponse> 
         let events = seasonData.eventsData;
         events.forEach(event => event.seasonId = meta.seasonId);
 
-        console.log('existing count is ' + existingCount);
         let season: ISeason;
         if (existingCount > 0) {
-            console.log("perform update");
             season = await handleUpdate(meta, seasonData.eventsData);
         } else {
-            console.log("EVENts were ");
-            console.log(events);
             const createdSeason = await queries.addSeason(meta);
             const createdEvents = await queries.addSeasonEvent(events);
             season = {

@@ -77,8 +77,6 @@ const emit = defineEmits(['test-emit']);
 // Handle form changes
 const onChange = (event: JsonFormsChangeEvent) => {
     Object.assign(seasonState.value.metaData , event.data);
-    console.log("New season state");
-    console.log(seasonState.value);
 };
 
 // Provide the custom renderers and styles

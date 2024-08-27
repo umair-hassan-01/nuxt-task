@@ -29,6 +29,7 @@ export default interface IMeta{
     ballColor:string
     clubUrl:string
     iconUrl:string
+    pushToNakama:boolean
     updated_at?:string
     created_at?:string
 }

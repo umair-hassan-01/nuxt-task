@@ -26,10 +26,9 @@ export default defineEventHandler(async (request):Promise<ICreateSeasonResponse>
         
         delete meta.seasonNumber;
 
-        console.log("existing meta");
-        console.log(meta);
         const uuid = crypto.randomUUID();
         meta.seasonId = uuid;
+        meta.pushToNakama = false;  // because duplicated object is not yet pushed to nakama...
 
         events.forEach(event=>{
             event.seasonId = uuid;

@@ -76,15 +76,13 @@ const defaults = useDefaults();
 let currentEvent: ISeasonEvent = defaults.getDefaultEvent();
 
 // Fake API for fetching data
-const FakeAPI = {
+const serverAPI = {
     async fetch({ page, itemsPerPage, name }: any) {
-        console.log("name = " + name);
         const start = (page - 1) * itemsPerPage;
         const end = start + itemsPerPage;
         let items = events.slice();
         items = items.filter(item => item.title.toLowerCase().includes(name.toLowerCase()));
         const paginatedItems = items.slice(start, end);
-        console.log(paginatedItems);
         return {
             items: paginatedItems,
             total: items.length
@@ -105,10 +103,10 @@ const seasonName = ref('');
 const calories = ref('');
 const anEvent = ref<ISeasonEvent>(currentEvent);
 
-// Load items from FakeAPI
+// Load items from serverAPI
 async function loadItems({ page, itemsPerPage }: any) {
     loading.value = true;
-    const { items, total } = await FakeAPI.fetch({ page, itemsPerPage, name: seasonName.value });
+    const { items, total } = await serverAPI.fetch({ page, itemsPerPage, name: seasonName.value });
     serverItems.value = items;
     totalItems.value = total;
     loading.value = false;
@@ -137,7 +135,6 @@ function eventFormEmit(newEventFormData: ISeasonEvent) {
 
 // Submit event form
 function submitEventForm() {
-    console.log("Going to validate the form");
     const seasonValidator = useSeasonValidators(); // Assume this is a composable for validation
     let formValid = false;
 
