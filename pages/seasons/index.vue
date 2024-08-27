@@ -28,8 +28,9 @@
             </template>
             <template v-slot:item.operations="{ item }">
                 <v-btn density="compact" icon="mdi-content-copy" @click="copyEvent(item)"></v-btn>
-                <v-btn density="compact" icon="mdi-square-edit-outline" @click="handleCreateSeasons(item.seasonId)"></v-btn>
-                <v-btn density="compact" icon="mdi-plus"></v-btn>
+                <v-btn density="compact" icon="mdi-square-edit-outline"
+                    @click="handleCreateSeasons(item.seasonId)"></v-btn>
+                <v-btn density="compact" icon="mdi-plus" @click="generateDuplicate(item.seasonId)"></v-btn>
             </template>
         </v-data-table-server>
     </v-container>
@@ -42,22 +43,20 @@
 
 <script>
 
-
-let simpleSeasons = [];
+let simpleSeasons = ref([]);
 
 const FakeAPI = {
     async fetch({ page, itemsPerPage, name }) {
         const start = (page - 1) * itemsPerPage;
         const end = start + itemsPerPage;
-        console.log("Items");
-        console.log(simpleSeasons);
-        let items = simpleSeasons.slice();
+
+        let items = simpleSeasons.value.slice();
         // apply search[name parameter] filter on items....
         items = items.filter(item => item.title.toLowerCase().includes(name.toLowerCase()));
 
         // now paginate the selected items....
         let paginatedItems = items.slice(start, end);
-        console.log(paginatedItems);
+
         return {
             items: paginatedItems,
             total: items.length
@@ -123,31 +122,60 @@ export default {
 
         handleCreateSeasons(seasonId) {
             const router = useRouter();
-            if(seasonId === undefined)
+            if (seasonId === undefined)
                 router.push('/seasons/create');
             else
                 router.push(`/seasons/create?seasonId=${seasonId}`);
         },
 
+        async generateDuplicate(seasonId) {
+
+            const { data } = await useFetch('/api/seasons/duplicate', {
+                "method": "POST",
+                "body": {
+                    "seasonId": seasonId
+                }
+            });
+
+            if (data.value.success) {
+                const meta = data.value.season.metaData;
+                const season = data.value.season.eventsData;
+
+                let currentSimpleSeason = {
+                    date: meta.startTime,
+                    seasonId: meta.seasonId,
+                    logo: 'https://i.pinimg.com/564x/2a/35/d9/2a35d95e6861fa2cc4b991d9417f8b68.jpg',
+                    title: meta.seasonTitle,
+                    nakamaPush: false,
+                    events: season.length,
+                    theme: meta.theme,
+                    updated_at: meta.updated_at
+                };
+                simpleSeasons.value.push(currentSimpleSeason);
+                this.refreshTable();
+            } else {
+                console.log("error in duplication");
+            }
+        },
+
         async fetchSeasons() {
             const seasons = await useFetch('/api/seasons');
-            simpleSeasons = JSON.parse(JSON.stringify(seasons.data.value));
-            
-            console.log(simpleSeasons);
-            if(simpleSeasons === null)
-                simpleSeasons = [];
+
+            simpleSeasons.value = JSON.parse(JSON.stringify(seasons.data.value));
+
+            if (simpleSeasons.value === null)
+                simpleSeasons.value = [];
 
             this.refreshTable();
         },
 
-        copyEvent(item){
+        copyEvent(item) {
             navigator.clipboard.writeText(JSON.stringify(item));
         }
     },
-    mounted() {
+    async mounted() {
         console.log("Mount called");
-        this.fetchSeasons();
-        simpleSeasons = [];
+        await this.fetchSeasons();
     }
 };
 

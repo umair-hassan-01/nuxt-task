@@ -3,7 +3,7 @@
     <h1 v-show="loading">Loading....</h1>
     <div v-if="seasonData">
 
-        <v-btn @click="copySeason" class="mx-2 red--text" prepend-icon="mdi-content-copy" variant="outlined">COPY
+        <v-btn @click="copySeason" class="mx-2 my-4 red--text" prepend-icon="mdi-content-copy" variant="outlined" color="secondary">COPY
             SEASON</v-btn>
         <v-stepper hide-actions v-model="currentStep" :items="['Meta', 'View', 'Championships', 'Save']">
 
@@ -75,6 +75,7 @@ async function loadSeasons(): Promise<ISeason> {
     if (!seasonId) {
         // user want to add a new season...
         season = defaults.getDefaultSeason();
+
     } else {
         // user want to edit an existing season...
         const response = await useFetch(`/api/seasons/getSeason?seasonId=${seasonId}`);
@@ -141,6 +142,7 @@ async function submitSeason(){
         });
         console.log(data);
         const router = useRouter();
+        seasonState.value = defaults.getDefaultSeason();
         router.push('/seasons');
     }catch(error:any){
         console.log("while submitting form");

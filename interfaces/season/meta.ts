@@ -28,6 +28,7 @@ export default interface IMeta{
     description:string
     ballColor:string
     clubUrl:string
+    iconUrl:string
     updated_at?:string
     created_at?:string
 }

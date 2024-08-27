@@ -5,6 +5,7 @@ import type IView from "~/interfaces/season/view";
 import type ISeasonEvent from "~/interfaces/season/event";
 import type ISeason from "~/interfaces/season/season";
 import * as dbconfig from "~/db/tableConfigs.json";
+import useHelpers from "~/composables/useHelpers.js";
 
 function seasonQueries() {
     interface ISeasonFilter {
@@ -13,32 +14,45 @@ function seasonQueries() {
     };
 
     const tableNames = dbconfig.default.databaseConfigs.tableNames;
+    const helper = useHelpers();
 
     async function getAllSeasons(filter: ISeasonFilter): Promise<any> {
-
         return new Promise((resolve, reject) => {
-            const query =
-                db(`${tableNames.seasonTable}`)
-                    .innerJoin(`${tableNames.seasonEventsTable} as ev`, `${tableNames.seasonTable}.seasonId`, `=`, `ev.seasonId`)
-                    
-                    .select([`${tableNames.seasonTable}.*`, db.raw(`JSONB_AGG(ev.*) as events`)]);
-
-
-            // apply some conditional filters....
-            if (filter.seasonId !== undefined)
+            const query = db(`${tableNames.seasonTable}`)
+                .leftJoin(`${tableNames.seasonEventsTable} as ev`, `${tableNames.seasonTable}.seasonId`, `=`, `ev.seasonId`)
+                .select([
+                    `${tableNames.seasonTable}.*`,
+                    db.raw(`
+                        COALESCE(
+                            JSONB_AGG(ev.*), 
+                            '[]'::jsonb
+                        ) AS events
+                    `)
+                ]);
+    
+            // Apply some conditional filters....
+            if (filter.seasonId !== undefined) {
                 query.where(`${tableNames.seasonTable}.seasonId`, `=`, filter.seasonId);
-
-            // now execute the query...
+            }
+    
+            // Execute the query...
             query.groupBy([`${tableNames.seasonTable}.seasonId`])
                 .then(results => {
+
+                    // sanitize some null events... due to left join..
+                    results.forEach(result=>{
+                        result.events = helper.sanitize(result.events)}
+                    );
                     resolve(results);
                 })
-                .then(null, error => {
+                .catch(error => {
+                    console.log("error occurred");
                     reject(error);
-                })
+                });
         });
-
     }
+    
+    
 
     function countSeason(filter : ISeasonFilter):Promise<number>{
         return new Promise(async (resolve , reject)=>{

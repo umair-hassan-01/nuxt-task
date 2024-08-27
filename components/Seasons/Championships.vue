@@ -1,10 +1,8 @@
 <template>
-    <div class="flex justify-end">
-
-    </div>
+    <h1 class="font-bold text-3xl text-center my-4">Championship Section</h1>
     <div class="flex justify-between m-4">
         <div>
-            <h1 class="text-2xl md:font-bold">Events:</h1>
+            <h1 class="text-2xl md:font-bold">Events</h1>
         </div>
         <div>
             <div class="flex justify-end align-center items-between">
@@ -24,16 +22,16 @@
 
                             </v-spacer>
 
-                            <v-btn @click="dialog = false"> CANCEL </v-btn>
+                            <v-btn @click="dialog = false" color="error"> CANCEL </v-btn>
 
-                            <v-btn @click="submitEventForm"> CREATE </v-btn>
+                            <v-btn @click="submitEventForm" color="primary"> CREATE </v-btn>
                         </template>
                     </v-card>
                 </v-dialog>
                 <v-btn @click="copyEvents" class="mx-2 red--text" prepend-icon="mdi-content-copy"
-                    variant="outlined">COPY</v-btn>
-                <v-btn class="mx-2 red--text" prepend-icon="mdi-content-paste" variant="outlined">PASTE</v-btn>
-                <v-btn class="mx-2 red--text" prepend-icon="mdi-delete-outline" variant="outlined">DELETE</v-btn>
+                    variant="outlined" color="secondary">COPY</v-btn>
+                <v-btn class="mx-2 red--text" prepend-icon="mdi-content-paste" variant="outlined" color="primary">PASTE</v-btn>
+                <v-btn class="mx-2 red--text" prepend-icon="mdi-delete-outline" variant="outlined" color="error">DELETE</v-btn>
             </div>
         </div>
 
@@ -74,17 +72,8 @@ let seasonState = useState('seasonState') as Ref<ISeason>;
 const events: ISeasonEvent[] = seasonState.value.eventsData;
 
 // Default data for event form
-const currentEvent: ISeasonEvent = {
-    eventId: crypto.randomUUID(),
-    title: 'dummy title',
-    eventType: 'weekly',
-    startTime: '2022-06-15T13:15:00+05:00',
-    endTime: '2022-06-15T13:15:00+05:00',
-    qualifierDuration: 0,
-    tournamentDuration: 0,
-    tickets: 0,
-    prizePool: 0
-};
+const defaults = useDefaults();
+let currentEvent: ISeasonEvent = defaults.getDefaultEvent();
 
 // Fake API for fetching data
 const FakeAPI = {
@@ -153,8 +142,9 @@ function submitEventForm() {
     let formValid = false;
 
     if (seasonValidator.validateSeasonEvent(anEvent.value)) {
-        let copyCurrentEvent = { ...currentEvent };
+        let copyCurrentEvent = { ...anEvent.value };
         events.push(copyCurrentEvent);
+        anEvent.value = defaults.getDefaultEvent();
         handleTableSearch();
         formValid = true;
     }
@@ -166,6 +156,7 @@ function submitEventForm() {
 function copyEvents() {
     navigator.clipboard.writeText(JSON.stringify(events));
 }
+
 
 // Initial data load
 onMounted(() => {

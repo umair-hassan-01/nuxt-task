@@ -58,19 +58,24 @@ const MetaSchema: JSONSchemaType<IMeta> = {
             "type": "string",
             "minLength": 3,
             "maxLength": 30
-            
+
         },
-        "created_at":{
-            "type":"string",
-            "nullable":true
+        "iconUrl": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 200
         },
-        "updated_at":{
-            "type":"string",
-            "nullable":true
+        "created_at": {
+            "type": "string",
+            "nullable": true
+        },
+        "updated_at": {
+            "type": "string",
+            "nullable": true
         }
 
     },
-    "required": ["seasonId", "seasonTitle", "theme", "startTime", "endTime","backgroundBlurUrl", "backgroundUrl", "buttonText", "description", "ballColor", "clubUrl"],
+    "required": ["seasonId", "seasonTitle", "theme", "startTime", "endTime", "backgroundBlurUrl", "backgroundUrl", "buttonText", "description", "ballColor", "clubUrl" , "iconUrl"],
     "additionalProperties": false
 };
 

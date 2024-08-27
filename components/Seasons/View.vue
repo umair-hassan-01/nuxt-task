@@ -1,21 +1,21 @@
 <template>
-    <h1>View Section</h1>
+    <h1 class="font-bold text-3xl text-center my-2">View Section</h1>
 
-    <div class="flex flex-row justify-between">
-        <div>
+    <div class="flex flex-row">
+
+
+        <div style="flex: 0 0 60%; padding: 10px;">
             <div>
-                <JsonForms :data="seasonState.metaData" :schema="viewSchema" :uischema="viewUiSchema" :renderers="renderers"
-                    @change="handleViewChange" />
+                <JsonForms :data="seasonState.metaData" :schema="viewSchema" :uischema="viewUiSchema"
+                    :renderers="renderers" @change="handleViewChange" />
             </div>
-
         </div>
-
-        <div>
-            <h1>section for logo selection</h1>
-            <!-- here comes the json form section -->
-
+        <div style="flex: 0 0 40%; padding: 10px;">
+            <SeasonsViewIcons/>
+            <!-- Here comes the logo selection content -->
         </div>
     </div>
+
 
 </template>
 
@@ -33,10 +33,10 @@ import type IMeta from '~/interfaces/season/meta';
 
 // Merge styles if needed
 const myStyles = mergeStyles(defaultStyles, { control: { label: "mylabel" } });
-
-
 const viewSchema: JSONSchemaType<IMeta> = MetaSchema;
 
+// reference varaibles ...
+const dialog = ref(false);
 const viewUiSchema = {
     type: 'VerticalLayout',
     elements: [
@@ -107,7 +107,7 @@ const viewUiSchema = {
 // edit shared season state...
 let seasonState = useState('seasonState') as Ref<ISeason>;
 function handleViewChange(event: JsonFormsChangeEvent) {
-    Object.assign(seasonState.value.metaData , event.data);
+    Object.assign(seasonState.value.metaData, event.data);
     console.log("new season state");
     console.log(seasonState.value);
 }

@@ -9,7 +9,9 @@ export default function useHelpers(){
             return !isNaN(Date.parse(dateTime)); // Basic validation
         }
     });
-    
+
+    // mixed type of IMeta and ISeasonEvent
+
     function validateSchema(data:any , schema:JSONSchemaType<IMeta | ISeasonEvent>):boolean{
         const validate = ajv.compile(schema);
         if(validate(data))
@@ -17,8 +19,13 @@ export default function useHelpers(){
         return false;
     }
 
+    function sanitize(values:any[]){
+        const filtered = values.filter(v=>v !== null);
+        return filtered;
+    }
 
     return {
-        validateSchema
+        validateSchema,
+        sanitize
     }
 }

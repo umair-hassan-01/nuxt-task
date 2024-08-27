@@ -1,4 +1,5 @@
 <template>
+    <h1 class="font-bold text-3xl text-center my-2">Meta Section</h1>
     <div>
         <JsonForms :data="seasonState.metaData" :schema="schema" :uischema="uischema" :renderers="renderers" @change="onChange" />
     </div>
