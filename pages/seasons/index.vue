@@ -52,23 +52,41 @@
 
 <script>
 
+import * as sea from "node:sea";
+
 let simpleSeasons = ref([]);
+let lastPage = ref(0);
+let lastSmall = ref(10000);
+let lastLarge = ref(0);
 
 const FakeAPI = {
     async fetch({ page, itemsPerPage, name }) {
         const start = (page - 1) * itemsPerPage;
         const end = start + itemsPerPage;
 
-        let items = simpleSeasons.value.slice();
-        // apply search[name parameter] filter on items....
-        items = items.filter(item => item.seasonTitle.toLowerCase().includes(name.toLowerCase()));
+        let isDesc = 'false';
+        // p1   p2
+        if(page < lastPage.value)
+          isDesc = 'true';
 
-        // now paginate the selected items....
-        let paginatedItems = items.slice(start, end);
+        // load items from backend server
+        let url = `/api/seasons?items=${itemsPerPage}&isDesc=${isDesc}&lastSmall=${lastSmall.value}&lastLarge=${lastLarge.value}`;
+        const seasons = await useFetch(url);
+        let totalCount = 0;
+        if (seasons.data.value) {
+          simpleSeasons.value = seasons.data.value.paginatedSeasons;
+          totalCount = seasons.data.value.totalCount;
+        }
+        else {
+          simpleSeasons.value = [];
+        }
 
+        lastPage.value = page;
+        lastLarge.value = simpleSeasons.value[simpleSeasons.value.length - 1].seasonNumber;
+        lastSmall.value = simpleSeasons.value[0].seasonNumber;
         return {
-            items: paginatedItems,
-            total: items.length
+            items: simpleSeasons.value,
+            total: totalCount
         };
     }
 }
@@ -176,12 +194,12 @@ export default {
         },
 
         async fetchSeasons() {
-            const seasons = await useFetch('/api/seasons');
-
-            simpleSeasons.value = JSON.parse(JSON.stringify(seasons.data.value));
-            console.log(simpleSeasons);
-            if (simpleSeasons.value === null)
-                simpleSeasons.value = [];
+            // const seasons = await useFetch('/api/seasons');
+            //
+            // simpleSeasons.value = JSON.parse(JSON.stringify(seasons.data.value));
+            // console.log(simpleSeasons);
+            // if (simpleSeasons.value === null)
+            //     simpleSeasons.value = [];
 
             this.refreshTable();
         },
@@ -232,6 +250,9 @@ export default {
     },
     async mounted() {
         console.log("Mount called");
+        lastSmall = ref(10000);
+        lastLarge = ref(0);
+        lastPage = ref(0);
         await this.fetchSeasons();
     }
 };

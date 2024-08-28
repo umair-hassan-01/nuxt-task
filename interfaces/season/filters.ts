@@ -1,4 +1,6 @@
 export default interface IPaginationFilter{
     itemsPerPage:number
-    lastItemNumber:number
+    lastSmallItemNumber:number
+    lastLargeItemNumber:number
+    isDesc:boolean
 }

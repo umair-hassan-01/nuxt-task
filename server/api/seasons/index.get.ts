@@ -3,32 +3,72 @@ import IMeta from "~/interfaces/season/meta";
 import ISeason from "~/interfaces/season/season";
 import ISimplifiedSeason from "~/interfaces/season/simpleSeason";
 import IPaginationFilter from "~/interfaces/season/filters";
+import * as dbconfig from "~/db/tableConfigs.json";
 
-// seasonId:"1",
-// logo:'https://i.pinimg.com/564x/2a/35/d9/2a35d95e6861fa2cc4b991d9417f8b68.jpg',
-// title: 'Pre Winter Games',
-// date:"7 Aug 2024",
-// nakama_push:false,
-// events:2,
-// theme:4,
-// updated_at:"2024 Aug 29 10:00 AM",
+interface ISeasonIndexResponse{
+    totalCount:number
+    paginatedSeasons:ISimplifiedSeason[]
+}
 
-export default defineEventHandler(async (request):Promise<ISimplifiedSeason[]> => {
+interface ISeasonIndexRequest{
+    items:string
+    lastSmall:string
+    lastLarge:string
+    isDesc:string
+}
+
+export default defineEventHandler(async (request):Promise<ISeasonIndexResponse> => {
+    const tableNames = dbconfig.databaseConfigs.tableNames;
 
     try {
-        // dummy pagination
+
+        const query:ISeasonIndexRequest = await getQuery(request);
+        console.log("hit the backend");
+
+        // fix some defaults
+        if(query.items === undefined)
+            query.items = '10';
+
+        if(query.lastSmall === undefined)
+            query.lastSmall = '0';
+
+        if(query.lastLarge === undefined)
+            query.lastLarge = '10000';
+
+        if(query.isDesc === undefined)
+            query.isDesc = 'false';
+
+        // generate custom pagination filter
         const paginationFilter:IPaginationFilter = {
-            itemsPerPage:4,
-            lastItemNumber:0
+            itemsPerPage:Number(query.items),
+            lastSmallItemNumber:Number(query.lastSmall),
+            lastLargeItemNumber:Number(query.lastLarge),
+            isDesc:query.isDesc.toLowerCase() === 'true'
         }
 
         const queries = seasonQueries();
-        const seasons = await queries.getSimpleSeason({} , paginationFilter);
+        const seasons = (await queries.getSimpleSeason({} , paginationFilter)) as ISimplifiedSeason[];
+        const count = await queries.countRows(tableNames.seasonTable);
 
-        return seasons;
+
+        // just a utility sorting... to keep items in ascending order it user is calling previous page...
+        let sortedSeasons = seasons;
+        if(paginationFilter.isDesc) {
+            sortedSeasons = seasons.sort((a, b) => {
+                return (a.seasonNumber > b.seasonNumber) - (a.seasonNumber < b.seasonNumber)
+            })
+        }
+
+        return {
+            totalCount:count,
+            paginatedSeasons:sortedSeasons
+        }
 
     } catch (exception: any) {
         console.log(exception);
-        return [];
+        return {
+            totalCount:0,
+            paginatedSeasons:[]
+        }
     }
 })

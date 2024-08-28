@@ -118,7 +118,7 @@ function seasonQueries() {
 
                 // apply pagination filter
                 if(paginationFilter){
-                    query.where('seasonNumber' , '>' , paginationFilter.lastItemNumber);
+                    query.where('seasonNumber' , paginationFilter.isDesc ? '<' : '>' , paginationFilter.isDesc ? paginationFilter.lastSmallItemNumber : paginationFilter.lastLargeItemNumber);
                     query.limit(paginationFilter.itemsPerPage);
                 }
 
@@ -131,7 +131,7 @@ function seasonQueries() {
 
                 );
 
-                query.orderBy('seasonNumber' , 'asc').then(seasons => resolve(seasons))
+                query.orderBy('seasonNumber' , paginationFilter?.isDesc ? 'desc' : 'asc').then(seasons => resolve(seasons))
                     .then(null , error => reject(error));
 
             }catch(error:any){
@@ -244,6 +244,14 @@ function seasonQueries() {
         }
     }
 
+    function countRows(tableName:string){
+        return new Promise((resolve , reject)=>{
+            let query = db(tableName).count('*');
+            query.then(count=>resolve(count.length > 0 ? count[0].count : 0))
+                .catch(error=>reject(error));
+        });
+    }
+
     return {
         getAllSeasons,
         addSeasonEvent,
@@ -256,7 +264,8 @@ function seasonQueries() {
         countSeason,
         updateSeason,
         batchUpdate,
-        deleteSeason
+        deleteSeason,
+        countRows
     }
 }
 
