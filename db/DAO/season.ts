@@ -191,6 +191,22 @@ function seasonQueries() {
         }
     }
 
+
+    async function deleteSeason(seasonId:string){
+        try{
+            // first delete from seasonTable
+            const seasonDel = await db(tableNames.seasonTable).where('seasonId','=',seasonId).del();
+            // now perform cascade delete on events table
+            const eventsDel = await db(tableNames.seasonEventsTable)
+                                    .where('seasonId' , '=' , seasonId)
+                                    .del();
+            
+            return [seasonDel , eventsDel];
+        }catch(error:any){
+            throw error;
+        }
+    }
+
     return {
         getAllSeasons,
         addSeasonEvent,
@@ -201,7 +217,8 @@ function seasonQueries() {
         addSeason,
         countSeason,
         updateSeason,
-        batchUpdate
+        batchUpdate,
+        deleteSeason
     }
 }
 

@@ -29,10 +29,17 @@
                 <v-img :src="item.logo" class="rounded w-96" max-width="100" max-height="100"></v-img>
             </template>
             <template v-slot:item.operations="{ item }">
-                <v-btn density="compact" icon="mdi-content-copy" @click="copyEvent(item)"></v-btn>
-                <v-btn density="compact" icon="mdi-square-edit-outline"
-                    @click="handleCreateSeasons(item.seasonId)"></v-btn>
-                <v-btn density="compact" icon="mdi-plus" @click="generateDuplicate(item.seasonId)"></v-btn>
+                <div>
+                    <v-btn density="compact" icon="mdi-content-copy" @click="copyEvent(item)"></v-btn>
+                    <v-btn density="compact" icon="mdi-square-edit-outline"
+                        @click="handleCreateSeasons(item.seasonId)"></v-btn>
+                </div>
+
+                <div class="my-2">
+                    <v-btn density="compact" icon="mdi-plus" @click="generateDuplicate(item.seasonId)"></v-btn>
+                    <v-btn density="compact" icon="mdi-delete-outline" @click="deleteSeason(item.seasonId)"></v-btn>
+                </div>
+
             </template>
         </v-data-table-server>
     </v-container>
@@ -179,15 +186,38 @@ export default {
                 const { data } = await useFetch('/api/seasons/nakamaPush', {
                     "method": "POST",
                     "body": {
-                        "selected":this.selected
+                        "selected": this.selected
                     }
                 });
                 if (data.value.success) {
                     // update values locally...
                     await this.fetchSeasons(); // really ineffcient method .. we can update values locally
-                                              // or with help of server side pagination we can imporve it
+                    // or with help of server side pagination we can imporve it
                 }
             } catch (error) {
+                console.log(error);
+            }
+        },
+
+        async deleteSeason(seasonId){
+            console.log("delete season with id " + seasonId);
+            try{
+                const {error , data} = await useFetch('/api/seasons/delete' , {
+                    "method":"POST",
+                    "body":{
+                        "seasonId":seasonId
+                    }
+                });
+
+                if(error.value)
+                    throw error;
+
+                // remove data locally...
+                simpleSeasons.value = simpleSeasons.value.filter(season=>season.seasonId!==seasonId);
+                console.log(simpleSeasons);
+                this.refreshTable();
+            }catch(error){
+                console.log("Error occured");
                 console.log(error);
             }
         }
