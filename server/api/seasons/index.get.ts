@@ -2,6 +2,7 @@ import seasonQueries from "~/db/DAO/season";
 import IMeta from "~/interfaces/season/meta";
 import ISeason from "~/interfaces/season/season";
 import ISimplifiedSeason from "~/interfaces/season/simpleSeason";
+import IPaginationFilter from "~/interfaces/season/filters";
 
 // seasonId:"1",
 // logo:'https://i.pinimg.com/564x/2a/35/d9/2a35d95e6861fa2cc4b991d9417f8b68.jpg',
@@ -15,9 +16,15 @@ import ISimplifiedSeason from "~/interfaces/season/simpleSeason";
 export default defineEventHandler(async (request):Promise<ISimplifiedSeason[]> => {
 
     try {
+        // dummy pagination
+        const paginationFilter:IPaginationFilter = {
+            itemsPerPage:4,
+            lastItemNumber:0
+        }
 
         const queries = seasonQueries();
-        const seasons = await queries.getSimpleSeason({});
+        const seasons = await queries.getSimpleSeason({} , paginationFilter);
+
         return seasons;
 
     } catch (exception: any) {

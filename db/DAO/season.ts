@@ -6,6 +6,7 @@ import type ISeasonEvent from "~/interfaces/season/event";
 import type ISeason from "~/interfaces/season/season";
 import * as dbconfig from "~/db/tableConfigs.json";
 import useHelpers from "~/composables/useHelpers.js";
+import type IPaginationFilter from "~/interfaces/season/filters";
 
 function seasonQueries() {
     interface ISeasonFilter {
@@ -105,7 +106,7 @@ function seasonQueries() {
     }
 
     // simplified version of season to be displayed on index page....
-    function getSimpleSeason(filter:ISeasonFilter){
+    function getSimpleSeason(filter:ISeasonFilter , paginationFilter ?: IPaginationFilter){
         return new Promise(async (resolve, reject) => {
 
             try{
@@ -115,6 +116,12 @@ function seasonQueries() {
                 if(filter.seasonId !== undefined)
                     query.where('seasonId' , '=' , filter.seasonId);
 
+                // apply pagination filter
+                if(paginationFilter){
+                    query.where('seasonNumber' , '>' , paginationFilter.lastItemNumber);
+                    query.limit(paginationFilter.itemsPerPage);
+                }
+
                 query.select(
                     '*',
                     db(tableNames.seasonEventsTable)
@@ -122,7 +129,9 @@ function seasonQueries() {
                         .whereRaw('?? = ??', [`${tableNames.seasonEventsTable}.seasonId`, `${tableNames.seasonTable}.seasonId`])
                         .as('events')
 
-                ).then(seasons => resolve(seasons))
+                );
+
+                query.orderBy('seasonNumber' , 'asc').then(seasons => resolve(seasons))
                     .then(null , error => reject(error));
 
             }catch(error:any){
