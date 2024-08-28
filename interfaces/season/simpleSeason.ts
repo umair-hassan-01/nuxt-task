@@ -6,13 +6,8 @@
 // events:2,
 // theme:4,
 // updated_at:"2024 Aug 29 10:00 AM",
-export default interface ISimplifiedSeason{
-    seasonId:string
-    logo:string
-    title:string
-    date:string
-    nakamaPush:boolean
+import type IMeta from "~/interfaces/season/meta";
+
+export default interface ISimplifiedSeason extends IMeta{
     events:number
-    theme:number
-    updated_at:string
 }

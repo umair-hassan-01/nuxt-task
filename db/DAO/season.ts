@@ -104,6 +104,34 @@ function seasonQueries() {
         })
     }
 
+    // simplified version of season to be displayed on index page....
+    function getSimpleSeason(filter:ISeasonFilter){
+        return new Promise(async (resolve, reject) => {
+
+            try{
+
+                let query = db.from(tableNames.seasonTable);
+
+                if(filter.seasonId !== undefined)
+                    query.where('seasonId' , '=' , filter.seasonId);
+
+                query.select(
+                    '*',
+                    db(tableNames.seasonEventsTable)
+                        .count('*')
+                        .whereRaw('?? = ??', [`${tableNames.seasonEventsTable}.seasonId`, `${tableNames.seasonTable}.seasonId`])
+                        .as('events')
+
+                ).then(seasons => resolve(seasons))
+                    .then(null , error => reject(error));
+
+            }catch(error:any){
+                reject(error);
+            }
+
+        });
+    }
+
     // get seasonEvent by seasonId....
     async function getEventById(eventId: string) {
         try {
@@ -212,6 +240,7 @@ function seasonQueries() {
         addSeasonEvent,
         getSeasonMeta,
         getSeasonEvents,
+        getSimpleSeason,
         updateSeasonEvent,
         getEventById,
         addSeason,
@@ -226,7 +255,6 @@ export default seasonQueries;
 
 
 /*
-SEASON META
-SEASON_VIEW
-SEASON_EVENTS
+SEASON META ->table name is season
+SEASON_EVENTS -> table name is SEASON_EVENT
 */

@@ -25,8 +25,8 @@
             :items="serverItems" :items-length="totalItems" :loading="loading" :search="search" item-value="seasonId"
             @update:options="loadItems" v-model:items-per-page="itemsPerPage">
 
-            <template v-slot:item.logo="{ item }">
-                <v-img :src="item.logo" class="rounded w-96" max-width="100" max-height="100"></v-img>
+            <template v-slot:item.iconUrl="{ item }">
+                <v-img :src="item.iconUrl" class="rounded w-96" max-width="100" max-height="100"></v-img>
             </template>
             <template v-slot:item.operations="{ item }">
                 <div>
@@ -61,7 +61,7 @@ const FakeAPI = {
 
         let items = simpleSeasons.value.slice();
         // apply search[name parameter] filter on items....
-        items = items.filter(item => item.title.toLowerCase().includes(name.toLowerCase()));
+        items = items.filter(item => item.seasonTitle.toLowerCase().includes(name.toLowerCase()));
 
         // now paginate the selected items....
         let paginatedItems = items.slice(start, end);
@@ -80,6 +80,12 @@ export default {
         itemsPerPage: 5,
         headers: [
             {
+              title: 'Season Number',
+              align: 'start',
+              sortable: false,
+              key: 'seasonNumber',
+            },
+            {
                 title: 'ID',
                 align: 'start',
                 sortable: false,
@@ -89,11 +95,11 @@ export default {
                 title: "Logo",
                 align: "start",
                 sortable: false,
-                key: "logo"
+                key: "iconUrl"
             },
-            { title: 'Title', key: 'title', align: 'start', sortable: false },
-            { title: 'Date', key: 'date', align: 'end' },
-            { title: 'Pushed To Nakama', key: 'nakamaPush', align: 'end' },
+            { title: 'Title', key: 'seasonTitle', align: 'start', sortable: false },
+            { title: 'Date', key: 'startTime', align: 'end' },
+            { title: 'Pushed To Nakama', key: 'pushToNakama', align: 'end' },
             { title: 'Events', key: 'events', align: 'end' },
             { title: "Theme", key: "theme", align: "end" },
             { title: 'Updated At', key: 'updated_at', align: 'end' },
@@ -151,17 +157,19 @@ export default {
                 const season = data.value.season.eventsData;
 
                 let currentSimpleSeason = {
-                    date: meta.startTime,
+                    startTime: meta.startTime,
                     seasonId: meta.seasonId,
-                    logo: meta.iconUrl,
-                    title: meta.seasonTitle,
-                    nakamaPush: false,
+                    seasonNumber:meta.seasonNumber,
+                    iconUrl: meta.iconUrl,
+                    seasonTitle: meta.seasonTitle,
+                    pushToNakama: false,
                     events: season.length,
                     theme: meta.theme,
                     updated_at: meta.updated_at
                 };
                 simpleSeasons.value.push(currentSimpleSeason);
                 this.refreshTable();
+
             } else {
                 console.log("error in duplication");
             }
@@ -171,6 +179,7 @@ export default {
             const seasons = await useFetch('/api/seasons');
 
             simpleSeasons.value = JSON.parse(JSON.stringify(seasons.data.value));
+            console.log(simpleSeasons);
             if (simpleSeasons.value === null)
                 simpleSeasons.value = [];
 
@@ -191,8 +200,7 @@ export default {
                 });
                 if (data.value.success) {
                     // update values locally...
-                    await this.fetchSeasons(); // really ineffcient method .. we can update values locally
-                    // or with help of server side pagination we can imporve it
+                    await this.fetchSeasons(); // really ineffcient method .. we can update values locally or with help of server side pagination we can imporve it
                 }
             } catch (error) {
                 console.log(error);

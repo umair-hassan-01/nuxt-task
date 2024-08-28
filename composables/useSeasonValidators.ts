@@ -46,7 +46,7 @@ export default function useSeasonValidators(){
                 return {valid:false,index:i};
         return {valid:true , index:-1};
     }
-
+    
     return {
         validateSeasonView,
         validateSeasonMeta,

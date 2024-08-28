@@ -12,7 +12,7 @@ export default defineEventHandler(async (request):Promise<IBaseResponse> => {
     const session = await client.authenticateDevice(deviceId, true, "umairhassan");
 
     try {
-        // get the ids of seasons..
+        // get the ids of seasons...
         const body = await readBody(request);
         const ids: string[] = body.selected;
 
