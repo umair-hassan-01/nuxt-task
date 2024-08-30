@@ -52,7 +52,6 @@
 
 <script>
 
-import * as sea from "node:sea";
 
 let simpleSeasons = ref([]);
 let lastPage = ref(0);
@@ -70,7 +69,7 @@ const FakeAPI = {
           isDesc = 'true';
 
         // load items from backend server
-        let url = `/api/seasons?items=${itemsPerPage}&isDesc=${isDesc}&lastSmall=${lastSmall.value}&lastLarge=${lastLarge.value}`;
+        let url = `/api/seasons?items=${itemsPerPage}&isDesc=${isDesc}&lastSmall=${lastSmall.value}&lastLarge=${lastLarge.value}&search=${name}`;
         const seasons = await useFetch(url);
         let totalCount = 0;
         if (seasons.data.value) {

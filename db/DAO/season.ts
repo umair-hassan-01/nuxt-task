@@ -119,7 +119,7 @@ function seasonQueries() {
                 // apply pagination filter
                 if(paginationFilter){
                     query.where('seasonNumber' , paginationFilter.isDesc ? '<' : '>' , paginationFilter.isDesc ? paginationFilter.lastSmallItemNumber : paginationFilter.lastLargeItemNumber);
-                    query.where('')
+                    query.where('seasonTitle','like' , `%${paginationFilter.search}%`);
                     query.limit(paginationFilter.itemsPerPage);
                 }
 
@@ -245,9 +245,10 @@ function seasonQueries() {
         }
     }
 
-    function countRows(tableName:string){
+    function countRows(tableName:string , search:string){
         return new Promise((resolve , reject)=>{
             let query = db(tableName).count('*');
+            query.where('seasonTitle' , 'like' , `%${search}%`);
             query.then(count=>resolve(count.length > 0 ? count[0].count : 0))
                 .catch(error=>reject(error));
         });

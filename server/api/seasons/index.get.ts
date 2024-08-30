@@ -50,11 +50,9 @@ export default defineEventHandler(async (request):Promise<ISeasonIndexResponse> 
             search:query.search
         }
 
-        console.log(paginationFilter);
-
         const queries = seasonQueries();
         const seasons = (await queries.getSimpleSeason({} , paginationFilter)) as ISimplifiedSeason[];
-        const count = await queries.countRows(tableNames.seasonTable);
+        const count = await queries.countRows(tableNames.seasonTable , paginationFilter.search);
 
 
         // just a utility sorting... to keep items in ascending order it user is calling previous page...
