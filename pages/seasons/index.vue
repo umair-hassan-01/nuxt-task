@@ -133,6 +133,10 @@ export default {
     methods: {
         loadItems({ page, itemsPerPage }) {
             this.loading = true
+
+            if(page === 1)
+              this.setPaginationDefault();
+
             let name = this.seasonName;
             FakeAPI.fetch({ page, itemsPerPage, name }).then(({ items, total }) => {
                 this.serverItems = items
@@ -194,16 +198,13 @@ export default {
         },
 
         async fetchSeasons() {
-            // const seasons = await useFetch('/api/seasons');
-            //
-            // simpleSeasons.value = JSON.parse(JSON.stringify(seasons.data.value));
-            // console.log(simpleSeasons);
-            // if (simpleSeasons.value === null)
-            //     simpleSeasons.value = [];
-
             this.refreshTable();
         },
-
+        async setPaginationDefault() {
+          lastSmall = ref(10000);
+          lastLarge = ref(0);
+          lastPage = ref(0);
+        },
         copyEvent(item) {
             navigator.clipboard.writeText(JSON.stringify(item));
         },

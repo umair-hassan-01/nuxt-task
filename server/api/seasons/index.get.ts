@@ -15,6 +15,7 @@ interface ISeasonIndexRequest{
     lastSmall:string
     lastLarge:string
     isDesc:string
+    search:string
 }
 
 export default defineEventHandler(async (request):Promise<ISeasonIndexResponse> => {
@@ -37,14 +38,19 @@ export default defineEventHandler(async (request):Promise<ISeasonIndexResponse> 
 
         if(query.isDesc === undefined)
             query.isDesc = 'false';
+        if(query.search === undefined)
+            query.search = '';
 
         // generate custom pagination filter
         const paginationFilter:IPaginationFilter = {
             itemsPerPage:Number(query.items),
             lastSmallItemNumber:Number(query.lastSmall),
             lastLargeItemNumber:Number(query.lastLarge),
-            isDesc:query.isDesc.toLowerCase() === 'true'
+            isDesc:query.isDesc.toLowerCase() === 'true',
+            search:query.search
         }
+
+        console.log(paginationFilter);
 
         const queries = seasonQueries();
         const seasons = (await queries.getSimpleSeason({} , paginationFilter)) as ISimplifiedSeason[];

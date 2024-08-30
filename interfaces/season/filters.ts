@@ -3,4 +3,5 @@ export default interface IPaginationFilter{
     lastSmallItemNumber:number
     lastLargeItemNumber:number
     isDesc:boolean
+    search:string
 }

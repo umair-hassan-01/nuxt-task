@@ -119,6 +119,7 @@ function seasonQueries() {
                 // apply pagination filter
                 if(paginationFilter){
                     query.where('seasonNumber' , paginationFilter.isDesc ? '<' : '>' , paginationFilter.isDesc ? paginationFilter.lastSmallItemNumber : paginationFilter.lastLargeItemNumber);
+                    query.where('')
                     query.limit(paginationFilter.itemsPerPage);
                 }
 
