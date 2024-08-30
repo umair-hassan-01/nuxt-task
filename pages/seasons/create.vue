@@ -32,7 +32,7 @@
 
             <div class="flex justify-between mb-1 mx-1">
                 <v-btn @click="moveBack" :disabled="currentStep === 1">Back</v-btn>
-                <v-btn @click="submitSeason" :disabled="(currentStep < 4) || !stepValidated">Submit</v-btn>
+                <v-btn @click="submitSeason" v-if="(currentStep >= 4)" :disabled="(currentStep < 4) || !stepValidated">Submit</v-btn>
                 <v-btn @click="moveNext" v-if="!(currentStep === 4)" :disabled="!stepValidated">Next</v-btn>
             </div>
 
