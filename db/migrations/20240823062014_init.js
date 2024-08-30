@@ -23,8 +23,8 @@ export function up(knex) {
     table.uuid('seasonId');
     table.string('title' , 100);
     table.string('eventType' , 30);
-    table.date('startTime');
-    table.date('endTime');
+    table.dateTime('startTime');
+    table.dateTime('endTime');
     table.integer('qualifierDuration');
     table.integer('tournamentDuration');
     table.integer('tickets');

@@ -55,15 +55,11 @@ let currentStep = ref(1);
 let loading = ref(true);
 
 // validationState[i] represents that ith step of current stepper is validated or not...
-let validationStates: boolean[] = [false, false, false, false];
+let validationStates: boolean[] = [true, false, false, false];
 // setpValidated -> current step is validate or not
 let stepValidated = ref(validationStates[0]);
 
-const seasonValidators = useSeasonValidators();
 const helpers = useHelpers();
-
-const currentUUID = crypto.randomUUID();
-
 let defaults = useDefaults();
 const route = useRoute();
 
@@ -143,10 +139,16 @@ async function submitSeason(){
 }
 watch(seasonState.value , (newSeasonState)=>{
     handleValidation();
+    console.log("Values changed");
+    console.log(seasonState.value);
 });
 
 function copySeason() {
     navigator.clipboard.writeText(JSON.stringify(seasonState.value));
 }
+
+onMounted(()=>{
+  handleValidation();
+})
 
 </script>

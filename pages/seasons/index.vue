@@ -80,9 +80,6 @@ const FakeAPI = {
           simpleSeasons.value = [];
         }
 
-        lastPage.value = page;
-        lastLarge.value = simpleSeasons.value[simpleSeasons.value.length - 1].seasonNumber;
-        lastSmall.value = simpleSeasons.value[0].seasonNumber;
         return {
             items: simpleSeasons.value,
             total: totalCount

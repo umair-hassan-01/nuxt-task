@@ -17,6 +17,7 @@
                         <template v-slot:text>
                             <seasons-championship-form @event-form-emit="eventFormEmit" :current-event="anEvent" />
                         </template>
+
                         <template v-slot:actions>
                             <v-spacer>
 
@@ -29,9 +30,11 @@
                     </v-card>
                 </v-dialog>
                 <v-btn @click="copyEvents" class="mx-2 red--text" prepend-icon="mdi-content-copy"
-                    variant="outlined" color="secondary">COPY</v-btn>
-                <v-btn class="mx-2 red--text" prepend-icon="mdi-content-paste" variant="outlined" color="primary">PASTE</v-btn>
-                <v-btn class="mx-2 red--text" prepend-icon="mdi-delete-outline" variant="outlined" color="error">DELETE</v-btn>
+                    variant="outlined" color="secondary">COPY ALL</v-btn>
+                <v-btn @click="copySelectedEvents" class="mx-2 red--text" prepend-icon="mdi-content-copy"
+                     variant="outlined" color="secondary">COPY</v-btn>
+                <v-btn class="mx-2 red--text" prepend-icon="mdi-content-paste" variant="outlined" color="primary" @click="pasteEvents">PASTE</v-btn>
+                <v-btn class="mx-2 red--text" prepend-icon="mdi-delete-outline" variant="outlined" color="error" @click="deleteEvents">DELETE</v-btn>
             </div>
         </div>
 
@@ -52,12 +55,21 @@
             </v-col>
         </v-row>
         <v-data-table-server class="row-height-50" v-model="selected" show-select :headers="headers"
-            :items="serverItems" :items-length="totalItems" :loading="loading" :search="search" item-value="title"
+            :items="serverItems" :items-length="totalItems" :loading="loading" :search="search" item-value="eventId"
             @update:options="loadItems" @click:row="handleCheckBoxClick" v-model:items-per-page="itemsPerPage">
 
-            <template v-slot:item.logo="{ item }">
-                <v-img :src="item.logo" class="rounded w-96" max-width="100" max-height="100"></v-img>
-            </template>
+          <template v-slot:item.operations="{item}" >
+            <div>
+              <v-btn density="compact" icon="mdi-content-copy" @click="copySingleEvent(item.eventId)"></v-btn>
+              <v-btn density="compact" icon="mdi-square-edit-outline" @click="editSingleEvent(item.eventId)"></v-btn>
+            </div>
+
+            <div class="my-2">
+              <v-btn density="compact" icon="mdi-plus" @click="duplicateSingleEvent(item.eventId)"></v-btn>
+              <v-btn density="compact" icon="mdi-delete-outline" @click="deleteSingleEvent(item.eventId)"></v-btn>
+            </div>
+
+          </template>
         </v-data-table-server>
     </v-container>
 </template>
@@ -67,13 +79,14 @@ import { ref, reactive, defineEmits, onMounted } from 'vue';
 import type ISeasonEvent from '~/interfaces/season/event';
 import { useRouter } from 'vue-router';
 import type ISeason from '~/interfaces/season/season';
+import {target} from "@vue/devtools-shared";
 
 let seasonState = useState('seasonState') as Ref<ISeason>;
-const events: ISeasonEvent[] = seasonState.value.eventsData;
+let events: ISeasonEvent[] = seasonState.value.eventsData;
 
 // Default data for event form
 const defaults = useDefaults();
-let currentEvent: ISeasonEvent = defaults.getDefaultEvent();
+let currentEvent: ISeasonEvent = defaults.getDefaultEvent(seasonState.value.metaData.seasonId);
 
 // Fake API for fetching data
 const serverAPI = {
@@ -100,8 +113,38 @@ const serverItems = ref<ISeasonEvent[]>([]);
 const loading = ref(true);
 const totalItems = ref(0);
 const seasonName = ref('');
-const calories = ref('');
 const anEvent = ref<ISeasonEvent>(currentEvent);
+
+const headers = [
+      {
+        title: 'Season Id',
+        align: 'start',
+        sortable: false,
+        key: 'seasonId',
+      },
+      {
+        title: 'Event Id',
+        align: 'start',
+        sortable: false,
+        key: 'eventId',
+      },
+      {
+        title: 'Event Title',
+        align: 'start',
+        sortable: false,
+        key: 'title',
+      },
+      { title: 'Title', key: 'eventType', align: 'start', sortable: false },
+      { title: 'Start Time', key: 'startTime', align: 'end' },
+      { title: 'End Time', key: 'endTime', align: 'end' },
+      { title: 'Qualifier Duration', key: 'qualifierDuration', align: 'end' },
+      { title: "Tournament Duration", key: "tournamentDuration", align: "end" },
+      { title: 'Tickets', key: 'tickets', align: 'end' },
+      { title: 'Prize Pool', key: 'prizePool', align: 'end' },
+      { title: 'Created At', key: 'created_at', align: 'end' },
+      { title: 'Updated At', key: 'updated_at', align: 'end' },
+      { title: 'Operations', key: 'operations', align: 'end' },
+    ];
 
 // Load items from serverAPI
 async function loadItems({ page, itemsPerPage }: any) {
@@ -112,9 +155,15 @@ async function loadItems({ page, itemsPerPage }: any) {
     loading.value = false;
 }
 
+function refreshTable(){
+  loadItems({
+    page:1,
+    itemsPerPage:itemsPerPage.value
+  });
+}
 // Handle checkbox click
 function handleCheckBoxClick(event: any) {
-    console.log(event);
+
 }
 
 // Handle table search
@@ -122,15 +171,9 @@ function handleTableSearch() {
     loadItems({ page: 1, itemsPerPage: itemsPerPage.value });
 }
 
-// Handle season creation navigation
-function handleCreateSeasons() {
-    const router = useRouter();
-    router.push('/seasons/create');
-}
-
 // Emit event form data
 function eventFormEmit(newEventFormData: ISeasonEvent) {
-    console.log(anEvent.value);
+
 }
 
 // Submit event form
@@ -140,6 +183,7 @@ function submitEventForm() {
 
     if (seasonValidator.validateSeasonEvent(anEvent.value)) {
         let copyCurrentEvent = { ...anEvent.value };
+        events.splice(0 , events.length,...events.filter(e=>e.eventId !== copyCurrentEvent.eventId));
         events.push(copyCurrentEvent);
         anEvent.value = defaults.getDefaultEvent();
         handleTableSearch();
@@ -154,11 +198,69 @@ function copyEvents() {
     navigator.clipboard.writeText(JSON.stringify(events));
 }
 
+// copy selected events...
+function copySelectedEvents(){
+  let selectedOnes = serverItems.value.filter(item=>selected.value.includes(item.eventId));
+  navigator.clipboard.writeText(JSON.stringify(selectedOnes));
+}
+
+// paste events...
+function pasteEvents(){
+  console.log("Paste events called");
+}
+
+// delete selected events....
+function deleteEvents(){
+  console.log("Delete events called");
+  events.splice(0 , events.length , ...events.filter(event=>(selected.value.includes(event.eventId))===false));
+  refreshTable();
+}
+
+
+// copy single event to clipboard...
+function copySingleEvent(eventId:string){
+  const targetItem = serverItems.value.find(e=>e.eventId === eventId);
+  navigator.clipboard.writeText(JSON.stringify(targetItem));
+}
+
+// delete single event...
+function deleteSingleEvent(eventId:string){
+  events.splice(0 , events.length , ...events.filter(e=>e.eventId !== eventId));
+  refreshTable();
+}
+
+// edit single event...
+function editSingleEvent(eventId:string){
+  anEvent.value = events.find(e=>e.eventId === eventId);
+  console.log("Edit this");
+  console.log(events);
+  events.forEach(event=>{
+    if(event.eventId === eventId){
+      console.log(event);
+      anEvent.value = {...event};
+    }
+  })
+  console.log(anEvent.value);
+  dialog.value = true;
+}
+
+// duplicate single event...
+function duplicateSingleEvent(eventId:string){
+  // get the target event
+  let targetEvent = serverItems.value.find(item=>item.eventId === eventId);
+
+  // change event id
+  targetEvent = JSON.parse(JSON.stringify((targetEvent)));
+  targetEvent.eventId = crypto.randomUUID();
+  events.push(targetEvent);
+  refreshTable();
+}
 
 // Initial data load
 onMounted(() => {
     loadItems({ page: 1, itemsPerPage: itemsPerPage.value });
 });
+
 </script>
 /*
 
