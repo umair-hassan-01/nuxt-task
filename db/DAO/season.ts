@@ -118,9 +118,9 @@ function seasonQueries() {
 
                 // apply pagination filter
                 if(paginationFilter){
-                    query.where('seasonNumber' , paginationFilter.isDesc ? '<' : '>' , paginationFilter.isDesc ? paginationFilter.lastSmallItemNumber : paginationFilter.lastLargeItemNumber);
                     query.where('seasonTitle','like' , `%${paginationFilter.search}%`);
-                    query.limit(paginationFilter.itemsPerPage);
+                    query.offset(paginationFilter.offset);
+                    query.limit(paginationFilter.limit);
                 }
 
                 query.select(
@@ -132,7 +132,7 @@ function seasonQueries() {
 
                 );
 
-                query.orderBy('seasonNumber' , paginationFilter?.isDesc ? 'desc' : 'asc').then(seasons => resolve(seasons))
+                query.then(seasons => resolve(seasons))
                     .then(null , error => reject(error));
 
             }catch(error:any){

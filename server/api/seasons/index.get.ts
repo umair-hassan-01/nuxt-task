@@ -12,9 +12,7 @@ interface ISeasonIndexResponse{
 
 interface ISeasonIndexRequest{
     items:string
-    lastSmall:string
-    lastLarge:string
-    isDesc:string
+    currentPage:string
     search:string
 }
 
@@ -28,25 +26,21 @@ export default defineEventHandler(async (request):Promise<ISeasonIndexResponse> 
 
         // fix some defaults
         if(query.items === undefined)
-            query.items = '10';
+            query.items = '5';
 
-        if(query.lastSmall === undefined)
-            query.lastSmall = '0';
+        if(query.currentPage === undefined)
+            query.currentPage = '1';
 
-        if(query.lastLarge === undefined)
-            query.lastLarge = '10000';
-
-        if(query.isDesc === undefined)
-            query.isDesc = 'false';
         if(query.search === undefined)
             query.search = '';
 
+        let items = Number(query.items);
+        let page = Number(query.currentPage);
+
         // generate custom pagination filter
         const paginationFilter:IPaginationFilter = {
-            itemsPerPage:Number(query.items),
-            lastSmallItemNumber:Number(query.lastSmall),
-            lastLargeItemNumber:Number(query.lastLarge),
-            isDesc:query.isDesc.toLowerCase() === 'true',
+            limit:items,
+            offset:(page - 1) * items,
             search:query.search
         }
 
