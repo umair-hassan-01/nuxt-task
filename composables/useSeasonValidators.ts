@@ -14,6 +14,36 @@ export default function useSeasonValidators(){
         }
     });
 
+    // custom validator for meta schema...
+    const validate = ajv.compile(MetaSchema);
+
+    // Custom validation function
+    function validateMeta(data) {
+        const isValid = validate(data);
+
+        if (!isValid) {
+            return { valid: false, errors: validate.errors };
+        }
+
+        const now = dayjs().startOf('day');
+        const startTime = dayjs(data.startTime);
+        const endTime = dayjs(data.endTime);
+
+        if (startTime.isBefore(now)) {
+            return { valid: false, errors: [{ message: 'startTime must be greater than today.' }] };
+        }
+
+        if (endTime.isBefore(now)) {
+            return { valid: false, errors: [{ message: 'endTime must be greater than today.' }] };
+        }
+
+        if (endTime.isBefore(startTime)) {
+            return { valid: false, errors: [{ message: 'endTime must be greater than startTime.' }] };
+        }
+
+        return { valid: true, errors: [] };
+    }
+
     function validateSeasonView(viewData:IView) : boolean{
         const viewSchema:JSONSchemaType<IView> = ViewSchema;
         const validator = ajv.compile(viewSchema);

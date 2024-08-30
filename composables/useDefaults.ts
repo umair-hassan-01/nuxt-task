@@ -33,13 +33,19 @@ export default function useDefaults(){
         return seasonData;
     }
 
-    function getDefaultEvent():ISeasonEvent{
+    function getDefaultEvent(seasonId:string):ISeasonEvent{
+        const helpers = useHelpers();
+        let dateNow:string = helpers.toIsoLocalTime(Date.now());
+
         let event:ISeasonEvent = {
             eventId: crypto.randomUUID(),
+            seasonId:seasonId,
             title: 'dummy title',
             eventType: 'weekly',
-            startTime: '2022-06-15T13:15:00+05:00',
-            endTime: '2022-06-15T13:15:00+05:00',
+            startTime: dateNow,
+            endTime: dateNow,
+            created_at:dateNow,
+            updated_at:dateNow,
             qualifierDuration: 0,
             tournamentDuration: 0,
             tickets: 0,

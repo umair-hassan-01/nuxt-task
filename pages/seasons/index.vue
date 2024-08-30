@@ -69,7 +69,7 @@ const FakeAPI = {
           isDesc = 'true';
 
         // load items from backend server
-        let url = `/api/seasons?items=${itemsPerPage}&isDesc=${isDesc}&lastSmall=${lastSmall.value}&lastLarge=${lastLarge.value}&search=${name}`;
+        let url = `/api/seasons?items=${itemsPerPage}&currentPage=${page}&search=${name}`;
         const seasons = await useFetch(url);
         let totalCount = 0;
         if (seasons.data.value) {
@@ -80,9 +80,6 @@ const FakeAPI = {
           simpleSeasons.value = [];
         }
 
-        lastPage.value = page;
-        lastLarge.value = simpleSeasons.value[simpleSeasons.value.length - 1].seasonNumber;
-        lastSmall.value = simpleSeasons.value[0].seasonNumber;
         return {
             items: simpleSeasons.value,
             total: totalCount
@@ -264,5 +261,8 @@ export default {
 seasons:
 index.vue
 createSeason.vue
+
+
+if name is sorted then what ? ... keyset = (name , number)
 
 */

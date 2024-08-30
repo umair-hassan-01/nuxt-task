@@ -30,10 +30,16 @@ const uischema = {
                 {
                     type: 'Control',
                     scope: '#/properties/seasonNumber',
+                    "options": {
+                      "readOnly": true
+                    }
                 },
                 {
                     type: 'Control',
                     scope: '#/properties/seasonId',
+                  "options": {
+                    "readOnly": true
+                  }
                 },
                 {
                     type:"Control",

@@ -32,7 +32,7 @@
 
             <div class="flex justify-between mb-1 mx-1">
                 <v-btn @click="moveBack" :disabled="currentStep === 1">Back</v-btn>
-                <v-btn @click="submitSeason" :disabled="(currentStep < 4) || !stepValidated">Submit</v-btn>
+                <v-btn @click="submitSeason" v-if="(currentStep >= 4)" :disabled="(currentStep < 4) || !stepValidated">Submit</v-btn>
                 <v-btn @click="moveNext" v-if="!(currentStep === 4)" :disabled="!stepValidated">Next</v-btn>
             </div>
 
@@ -55,15 +55,11 @@ let currentStep = ref(1);
 let loading = ref(true);
 
 // validationState[i] represents that ith step of current stepper is validated or not...
-let validationStates: boolean[] = [false, false, false, false];
+let validationStates: boolean[] = [true, false, false, false];
 // setpValidated -> current step is validate or not
 let stepValidated = ref(validationStates[0]);
 
-const seasonValidators = useSeasonValidators();
 const helpers = useHelpers();
-
-const currentUUID = crypto.randomUUID();
-
 let defaults = useDefaults();
 const route = useRoute();
 
@@ -143,10 +139,16 @@ async function submitSeason(){
 }
 watch(seasonState.value , (newSeasonState)=>{
     handleValidation();
+    console.log("Values changed");
+    console.log(seasonState.value);
 });
 
 function copySeason() {
     navigator.clipboard.writeText(JSON.stringify(seasonState.value));
 }
+
+onMounted(()=>{
+  handleValidation();
+})
 
 </script>
