@@ -7,7 +7,7 @@ export default defineEventHandler(async (request):Promise<IBaseResponse> => {
     
     // nakama configs ... we'll move these steps to some other place ...
     var useSSL = false; // Enable if server is run with an SSL certificate.
-    var client = new Client("defaultkey", "13.60.75.218", "7350", useSSL);
+    var client = new Client("defaultkey", "9302", "7350", useSSL);
     const deviceId = "9158C14D-BAE4-52F9-8733-418481F701B9";
     const session = await client.authenticateDevice(deviceId, true, "umairhassan");
 
