@@ -25,15 +25,49 @@
 
                             <v-btn @click="dialog = false" color="error"> CANCEL </v-btn>
 
-                            <v-btn @click="submitEventForm" color="primary"> CREATE </v-btn>
+                            <v-btn @click="submitEventForm" color="primary"> SAVE </v-btn>
                         </template>
                     </v-card>
                 </v-dialog>
+
                 <v-btn @click="copyEvents" class="mx-2 red--text" prepend-icon="mdi-content-copy"
                     variant="outlined" color="secondary">COPY ALL</v-btn>
                 <v-btn @click="copySelectedEvents" class="mx-2 red--text" prepend-icon="mdi-content-copy"
                      variant="outlined" color="secondary">COPY</v-btn>
-                <v-btn class="mx-2 red--text" prepend-icon="mdi-content-paste" variant="outlined" color="primary" @click="pasteEvents">PASTE</v-btn>
+
+                <v-dialog v-model="pasteDialog" max-width="65%" persistent>
+
+                  <template v-slot:activator="{ props: activatorProps }">
+                    <v-btn v-bind="activatorProps" class="mx-2 red--text" prepend-icon="mdi-content-paste" variant="outlined" color="primary">PASTE</v-btn>
+                  </template>
+
+                  <v-card>
+                    <template v-slot:text>
+                      <h1 class="text-red-600">{{pasteError}}</h1>
+                      <v-container>
+                        <v-textarea
+                            label="Event"
+                            name="input-7-1"
+                            variant="filled"
+                            v-model="pastedEvent"
+                            auto-grow
+                            clearable
+                        ></v-textarea>
+                      </v-container>
+                    </template>
+
+                    <template v-slot:actions>
+                      <v-spacer>
+
+                      </v-spacer>
+
+                      <v-btn @click="pastedEvent='';pasteError='';pasteDialog = false" color="error"> CANCEL </v-btn>
+
+                      <v-btn @click="pasteEvents" color="primary"> ADD </v-btn>
+                    </template>
+                  </v-card>
+                </v-dialog>
+
                 <v-btn class="mx-2 red--text" prepend-icon="mdi-delete-outline" variant="outlined" color="error" @click="deleteEvents">DELETE</v-btn>
             </div>
         </div>
@@ -105,6 +139,7 @@ const serverAPI = {
 
 // Reactive state
 const dialog = ref(false);
+const pasteDialog = ref(false);
 const singleSelect = ref(false);
 const selected = ref<ISeasonEvent[]>([]);
 const itemsPerPage = ref(5);
@@ -114,6 +149,7 @@ const loading = ref(true);
 const totalItems = ref(0);
 const seasonName = ref('');
 const anEvent = ref<ISeasonEvent>(currentEvent);
+const pastedEvent = ref("");
 
 const headers = [
       {
@@ -145,6 +181,7 @@ const headers = [
       { title: 'Updated At', key: 'updated_at', align: 'end' },
       { title: 'Operations', key: 'operations', align: 'end' },
     ];
+let pasteError = ref("");
 
 // Load items from serverAPI
 async function loadItems({ page, itemsPerPage }: any) {
@@ -204,14 +241,54 @@ function copySelectedEvents(){
   navigator.clipboard.writeText(JSON.stringify(selectedOnes));
 }
 
+// check if event is unique before adding it to the array of events
+function uniqueEvent(newEvent:ISeasonEvent):boolean{
+  for(let index = 0;index < events.length;index++)
+    if (events[index].eventId === newEvent.eventId)
+      return false;
+  return true;
+}
+
 // paste events...
 function pasteEvents(){
-  console.log("Paste events called");
+
+  try{
+    let eventData:ISeasonEvent[] = JSON.parse(pastedEvent.value);
+    const validator = useSeasonValidators();
+    let uniqueness:boolean = true;
+
+    eventData.forEach(event=>{
+      if(!validator.validateSeasonEvent(event))
+        throw new Error("Invalid event");
+
+      if(!uniqueEvent(event)){
+        pasteError.value = "Each Event must have unique event id";
+        uniqueness = false;
+        return;
+      }
+    });
+
+    if(!uniqueness)
+      return;
+
+    eventData.forEach(event=>{
+      events.push(event);
+    });
+
+    pasteDialog.value = false;
+    pasteError.value = "";
+    pastedEvent.value = "";
+    refreshTable();
+
+  }catch(error:any){
+    pasteError.value =  "Please Enter Valid JSON Array";
+    console.log(error);
+  }
+
 }
 
 // delete selected events....
 function deleteEvents(){
-  console.log("Delete events called");
   events.splice(0 , events.length , ...events.filter(event=>(selected.value.includes(event.eventId))===false));
   refreshTable();
 }
@@ -232,15 +309,13 @@ function deleteSingleEvent(eventId:string){
 // edit single event...
 function editSingleEvent(eventId:string){
   anEvent.value = events.find(e=>e.eventId === eventId);
-  console.log("Edit this");
-  console.log(events);
+
   events.forEach(event=>{
     if(event.eventId === eventId){
-      console.log(event);
       anEvent.value = {...event};
     }
-  })
-  console.log(anEvent.value);
+  });
+
   dialog.value = true;
 }
 

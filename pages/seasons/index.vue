@@ -60,13 +60,6 @@ let lastLarge = ref(0);
 
 const FakeAPI = {
     async fetch({ page, itemsPerPage, name }) {
-        const start = (page - 1) * itemsPerPage;
-        const end = start + itemsPerPage;
-
-        let isDesc = 'false';
-        // p1   p2
-        if(page < lastPage.value)
-          isDesc = 'true';
 
         // load items from backend server
         let url = `/api/seasons?items=${itemsPerPage}&currentPage=${page}&search=${name}`;
