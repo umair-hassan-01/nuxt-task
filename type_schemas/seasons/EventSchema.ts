@@ -12,7 +12,21 @@ const EventSchema:JSONSchemaType<ISeasonEvent>  = {
             "type":"string"
         },
         "eventType":{
-            "type":"string"
+            "type": "string",
+            "oneOf": [
+                    {
+                        "const": "daily",
+                        "title": "Daily"
+                    },
+                    {
+                        "const": "weekly",
+                        "title": "Weekly"
+                    },
+                    {
+                        "const": "monthly",
+                        "title": "Monthly"
+                    }
+                ]
         },
         "endTime":{
             "type":"string",

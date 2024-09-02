@@ -30,7 +30,7 @@
 
                 <v-btn @click="dialog = false"> CANCEL </v-btn>
 
-                <v-btn @click="confirmIcon"> CREATE </v-btn>
+                <v-btn @click="confirmIcon"> SAVE </v-btn>
             </template>
         </v-card>
     </v-dialog>

@@ -1,7 +1,7 @@
 <template>
     <h1 class="text-2xl md:font-bold">Create New Season</h1>
     <h1 v-show="loading">Loading....</h1>
-    <div v-if="seasonData">
+    <div v-if="seasonState">
 
         <v-btn @click="copySeason" class="mx-2 my-4 red--text" prepend-icon="mdi-content-copy" variant="outlined" color="secondary">COPY
             SEASON</v-btn>
@@ -71,28 +71,31 @@ async function loadSeasons(): Promise<ISeason> {
     if (!seasonId) {
         // user want to add a new season...
         season = defaults.getDefaultSeason();
-
     } else {
         // user want to edit an existing season...
         const response = await useFetch(`/api/seasons/getSeason?seasonId=${seasonId}`);
         const responsePayload = response.data.value as ISeason[];
 
         if(responsePayload !== null){
-            seasonState.value.metaData = responsePayload[0].metaData;
-            seasonState.value.eventsData = responsePayload[0].eventsData;
             season = responsePayload[0];
         }
         else
             season = defaults.getDefaultSeason();
     }
 
+    changeSeasonState(season.metaData , season.eventsData);
     loading.value = false;
     return season;
 }
 
 // create a reactive state for season form so it can be shared among components...
 let seasonState = useState('seasonState' , ()=>defaults.getDefaultSeason());
-let seasonData: ISeason = reactive(await loadSeasons());
+loadSeasons();
+
+function changeSeasonState(metaData:IMeta , eventsData:ISeasonEvent[]){
+  seasonState.value.metaData = metaData;
+  seasonState.value.eventsData = eventsData;
+}
 
 function moveNext() {
     if (currentStep.value < 4 && stepValidated.value) {

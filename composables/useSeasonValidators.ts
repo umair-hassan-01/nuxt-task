@@ -62,7 +62,6 @@ export default function useSeasonValidators(){
 
     function validateSeasonEvent(eventData:ISeasonEvent):boolean{
         const eventSchema:JSONSchemaType<ISeasonEvent> = EventSchema;
-        console.log(eventSchema);
         const validator = ajv.compile(eventSchema);
         if(validator(eventData))
             return true;

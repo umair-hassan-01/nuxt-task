@@ -132,7 +132,7 @@ function seasonQueries() {
 
                 );
 
-                query.then(seasons => resolve(seasons))
+                query.orderBy('seasonNumber' , 'asc').then(seasons => resolve(seasons))
                     .then(null , error => reject(error));
 
             }catch(error:any){
