@@ -25,6 +25,15 @@
             :items="serverItems" :items-length="totalItems" :loading="loading" :search="search" item-value="seasonId"
             @update:options="loadItems" v-model:items-per-page="itemsPerPage">
 
+            <template
+                v-for="header in headers.filter((header) =>
+                  header.hasOwnProperty('formatter')
+                )"
+                v-slot:[`item.${header.key}`]="{ item }"
+            >
+              {{ header.formatter(item[`${header.key}`]) }}
+            </template>
+
             <template v-slot:item.iconUrl="{ item }">
                 <v-img :src="item.iconUrl" class="rounded w-96" max-width="100" max-height="100"></v-img>
             </template>
@@ -105,11 +114,11 @@ export default {
                 key: "iconUrl"
             },
             { title: 'Title', key: 'seasonTitle', align: 'start', sortable: false },
-            { title: 'Date', key: 'startTime', align: 'end' },
+            { title: 'Date', key: 'startTime', align: 'end',formatter:useHelpers().dateFormatter},
             { title: 'Pushed To Nakama', key: 'pushToNakama', align: 'end' },
             { title: 'Events', key: 'events', align: 'end' },
             { title: "Theme", key: "theme", align: "end" },
-            { title: 'Updated At', key: 'updated_at', align: 'end' },
+            { title: 'Updated At', key: 'updated_at', align: 'end',formatter:useHelpers().dateFormatter },
             { title: "Operations", key: "operations", align: "end" }
         ],
         search: '',

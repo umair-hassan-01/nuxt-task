@@ -92,6 +92,15 @@
             :items="serverItems" :items-length="totalItems" :loading="loading" :search="search" item-value="eventId"
             @update:options="loadItems" @click:row="handleCheckBoxClick" v-model:items-per-page="itemsPerPage">
 
+          <template
+              v-for="header in headers.filter((header) =>
+                  header.hasOwnProperty('formatter')
+                )"
+              v-slot:[`item.${header.key}`]="{ item }"
+          >
+            {{ header.formatter(item[`${header.key}`]) }}
+          </template>
+
           <template v-slot:item.operations="{item}" >
             <div>
               <v-btn density="compact" icon="mdi-content-copy" @click="copySingleEvent(item.eventId)"></v-btn>
@@ -171,14 +180,14 @@ const headers = [
         key: 'title',
       },
       { title: 'Title', key: 'eventType', align: 'start', sortable: false },
-      { title: 'Start Time', key: 'startTime', align: 'end' },
-      { title: 'End Time', key: 'endTime', align: 'end' },
+      { title: 'Start Time', key: 'startTime', align: 'end',formatter:useHelpers().dateFormatter },
+      { title: 'End Time', key: 'endTime', align: 'end',formatter:useHelpers().dateFormatter },
       { title: 'Qualifier Duration', key: 'qualifierDuration', align: 'end' },
       { title: "Tournament Duration", key: "tournamentDuration", align: "end" },
       { title: 'Tickets', key: 'tickets', align: 'end' },
       { title: 'Prize Pool', key: 'prizePool', align: 'end' },
-      { title: 'Created At', key: 'created_at', align: 'end' },
-      { title: 'Updated At', key: 'updated_at', align: 'end' },
+      { title: 'Created At', key: 'created_at', align: 'end',formatter:useHelpers().dateFormatter },
+      { title: 'Updated At', key: 'updated_at', align: 'end',formatter:useHelpers().dateFormatter },
       { title: 'Operations', key: 'operations', align: 'end' },
     ];
 let pasteError = ref("");

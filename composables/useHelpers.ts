@@ -39,9 +39,14 @@ export default function useHelpers(){
             + ('0' + Math.abs(off % 60)).substr(-2);
     }
 
+    function dateFormatter(value:string){
+        return (new Date(value).toLocaleString());
+    }
+
     return {
         validateSchema,
         sanitize,
-        toIsoLocalTime
+        toIsoLocalTime,
+        dateFormatter
     }
 }
