@@ -39,6 +39,18 @@ export default function useHelpers(){
             + ('0' + Math.abs(off % 60)).substr(-2);
     }
 
+    function epochToDateTime(epochTime:number | string){
+        return (new Date(Number(epochTime))).toLocaleString();
+    }
+
+    function dateTimeToEpoch(dateTime:string){
+        return (new Date(dateTime)).getTime();
+    }
+
+    function epochToISO(epochTime:number | string){
+        return (new Date(Number(epochTime))).toISOString();
+    }
+
     function dateFormatter(value:string){
         return (new Date(value).toLocaleString());
     }
@@ -47,6 +59,9 @@ export default function useHelpers(){
         validateSchema,
         sanitize,
         toIsoLocalTime,
-        dateFormatter
+        dateFormatter,
+        epochToDateTime,
+        dateTimeToEpoch,
+        epochToISO
     }
 }

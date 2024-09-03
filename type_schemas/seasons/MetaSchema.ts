@@ -31,13 +31,13 @@ const MetaSchema: JSONSchemaType<IMeta> = {
         },
         "backgroundUrl": {
             "type": "string",
-            "minLength": 3,
-            "maxLength": 30
+            "minLength": 5,
+            "format":"url"
         },
         "backgroundBlurUrl": {
             "type": "string",
-            "minLength": 3,
-            "maxLength": 30
+            "minLength": 5,
+            "format":"url"
         },
         "buttonText": {
             "type": "string",
@@ -51,8 +51,8 @@ const MetaSchema: JSONSchemaType<IMeta> = {
         },
         "clubUrl": {
             "type": "string",
-            "minLength": 3,
-            "maxLength": 30
+            "minLength": 5,
+            "format":"url"
         },
         "ballColor": {
             "type": "string",
@@ -63,7 +63,7 @@ const MetaSchema: JSONSchemaType<IMeta> = {
         "iconUrl": {
             "type": "string",
             "minLength": 5,
-            "maxLength": 200
+            "format":"url"
         },
         "pushToNakama":{
             "type":"boolean"

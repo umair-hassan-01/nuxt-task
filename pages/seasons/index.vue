@@ -114,9 +114,9 @@ export default {
                 key: "iconUrl"
             },
             { title: 'Title', key: 'seasonTitle', align: 'start', sortable: false },
-            { title: 'Date', key: 'startTime', align: 'end',formatter:useHelpers().dateFormatter},
+            { title: 'Date', key: 'startTime', align: 'end',formatter:useHelpers().epochToDateTime},
             { title: 'Pushed To Nakama', key: 'pushToNakama', align: 'end' },
-            { title: 'Events', key: 'events', align: 'end' },
+            { title: 'Events', key: 'events.length', align: 'end' },
             { title: "Theme", key: "theme", align: "end" },
             { title: 'Updated At', key: 'updated_at', align: 'end',formatter:useHelpers().dateFormatter },
             { title: "Operations", key: "operations", align: "end" }
@@ -225,7 +225,6 @@ export default {
         },
 
         async deleteSeason(seasonId){
-            console.log("delete season with id " + seasonId);
             try{
                 const {error , data} = await useFetch('/api/seasons/delete' , {
                     "method":"POST",
@@ -239,7 +238,6 @@ export default {
 
                 // remove data locally...
                 simpleSeasons.value = simpleSeasons.value.filter(season=>season.seasonId!==seasonId);
-                console.log(simpleSeasons);
                 this.refreshTable();
             }catch(error){
                 console.log("Error occured");

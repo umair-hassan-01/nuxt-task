@@ -18,7 +18,7 @@ function seasonQueries() {
     const tableNames = dbconfig.default.databaseConfigs.tableNames;
     const helper = useHelpers();
 
-    async function getAllSeasons(filter: ISeasonFilter): Promise<any> {
+    async function getAllSeasons(filter: ISeasonFilter , paginationFilter?:IPaginationFilter): Promise<any> {
         return new Promise((resolve, reject) => {
             const query = db(`${tableNames.seasonTable}`)
                 .leftJoin(`${tableNames.seasonEventsTable} as ev`, `${tableNames.seasonTable}.seasonId`, `=`, `ev.seasonId`)
@@ -39,6 +39,14 @@ function seasonQueries() {
 
             if (filter.pushToNakama !== undefined) {
                 query.where(`${tableNames.seasonTable}.pushToNakama`, '=', filter.pushToNakama);
+            }
+
+            // apply pagination filter
+            if(paginationFilter){
+                query.where('seasonTitle','ilike' , `%${paginationFilter.search.toLowerCase()}%`);
+                query.offset(paginationFilter.offset);
+                query.limit(paginationFilter.limit);
+                query.orderBy('seasonNumber' , 'desc');
             }
 
             // Execute the query...
@@ -118,7 +126,7 @@ function seasonQueries() {
 
                 // apply pagination filter
                 if(paginationFilter){
-                    query.where('seasonTitle','like' , `%${paginationFilter.search}%`);
+                    query.where('seasonTitle','ilike' , `%${paginationFilter.search.toLowerCase()}%`);
                     query.offset(paginationFilter.offset);
                     query.limit(paginationFilter.limit);
                 }

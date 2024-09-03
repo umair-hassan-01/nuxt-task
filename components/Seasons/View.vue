@@ -56,10 +56,6 @@ const viewUiSchema = {
                     "options": {
                       "readOnly": true
                     }
-                },
-                {
-                    type: "Control",
-                    scope: "#/properties/seasonTitle"
                 }
             ]
         },

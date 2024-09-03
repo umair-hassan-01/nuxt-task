@@ -186,8 +186,6 @@ const headers = [
       { title: "Tournament Duration", key: "tournamentDuration", align: "end" },
       { title: 'Tickets', key: 'tickets', align: 'end' },
       { title: 'Prize Pool', key: 'prizePool', align: 'end' },
-      { title: 'Created At', key: 'created_at', align: 'end',formatter:useHelpers().dateFormatter },
-      { title: 'Updated At', key: 'updated_at', align: 'end',formatter:useHelpers().dateFormatter },
       { title: 'Operations', key: 'operations', align: 'end' },
     ];
 let pasteError = ref("");
@@ -227,13 +225,19 @@ function submitEventForm() {
     const seasonValidator = useSeasonValidators(); // Assume this is a composable for validation
     let formValid = false;
 
-    if (seasonValidator.validateSeasonEvent(anEvent.value)) {
+    let formValidation = seasonValidator.validateEvent(anEvent.value , seasonState.value.metaData);
+    console.log(formValidation);
+    if (formValidation.valid) {
         let copyCurrentEvent = { ...anEvent.value };
         events.splice(0 , events.length,...events.filter(e=>e.eventId !== copyCurrentEvent.eventId));
         events.push(copyCurrentEvent);
         anEvent.value = defaults.getDefaultEvent();
         handleTableSearch();
         formValid = true;
+    }else{
+      if(formValidation.errors.length > 0){
+        alert(formValidation.errors[0].instancePath + ' ' + formValidation.errors[0].message);
+      }
     }
 
     dialog.value = !formValid;
@@ -264,23 +268,14 @@ function pasteEvents(){
   try{
     let eventData:ISeasonEvent[] = JSON.parse(pastedEvent.value);
     const validator = useSeasonValidators();
-    let uniqueness:boolean = true;
 
     eventData.forEach(event=>{
       if(!validator.validateSeasonEvent(event))
         throw new Error("Invalid event");
-
-      if(!uniqueEvent(event)){
-        pasteError.value = "Each Event must have unique event id";
-        uniqueness = false;
-        return;
-      }
     });
 
-    if(!uniqueness)
-      return;
-
     eventData.forEach(event=>{
+      event.eventId = crypto.randomUUID();
       events.push(event);
     });
 
@@ -299,9 +294,9 @@ function pasteEvents(){
 // delete selected events....
 function deleteEvents(){
   events.splice(0 , events.length , ...events.filter(event=>(selected.value.includes(event.eventId))===false));
+  selected.value = [];
   refreshTable();
 }
-
 
 // copy single event to clipboard...
 function copySingleEvent(eventId:string){

@@ -4,6 +4,7 @@ import ISeason from "~/interfaces/season/season";
 import ISimplifiedSeason from "~/interfaces/season/simpleSeason";
 import IPaginationFilter from "~/interfaces/season/filters";
 import * as dbconfig from "~/db/tableConfigs.json";
+import moment from "moment";
 
 interface ISeasonIndexResponse{
     totalCount:number
@@ -45,21 +46,12 @@ export default defineEventHandler(async (request):Promise<ISeasonIndexResponse> 
         }
 
         const queries = seasonQueries();
-        const seasons = (await queries.getSimpleSeason({} , paginationFilter)) as ISimplifiedSeason[];
+        const seasons = (await queries.getAllSeasons({} , paginationFilter)) as ISeason[];
         const count = await queries.countRows(tableNames.seasonTable , paginationFilter.search);
-
-
-        // just a utility sorting... to keep items in ascending order it user is calling previous page...
-        let sortedSeasons = seasons;
-        if(paginationFilter.isDesc) {
-            sortedSeasons = seasons.sort((a, b) => {
-                return (a.seasonNumber > b.seasonNumber) - (a.seasonNumber < b.seasonNumber)
-            })
-        }
 
         return {
             totalCount:count,
-            paginatedSeasons:sortedSeasons
+            paginatedSeasons:seasons
         }
 
     } catch (exception: any) {

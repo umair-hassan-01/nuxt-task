@@ -28,8 +28,8 @@ export function up(knex) {
     table.increments('seasonNumber');
     table.string('seasonTitle' , 300);
     table.integer('theme');
-    table.string('startTime' , 60);
-    table.string('endTime' , 60);
+    table.bigint('startTime');
+    table.bigint('endTime');
     table.string('backgroundUrl' , 100);
     table.string('backgroundBlurUrl' , 100);
     table.string('buttonText' , 30);

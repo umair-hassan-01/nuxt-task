@@ -32,8 +32,8 @@
 
             <div class="flex justify-between mb-1 mx-1">
                 <v-btn @click="moveBack" :disabled="currentStep === 1">Back</v-btn>
-                <v-btn @click="submitSeason" v-if="(currentStep >= 4)" :disabled="(currentStep < 4) || !stepValidated">Submit</v-btn>
-                <v-btn @click="moveNext" v-if="!(currentStep === 4)" :disabled="!stepValidated">Next</v-btn>
+                <v-btn @click="submitSeason" v-if="(currentStep >= 4)" :disabled="(currentStep < 4)">Submit</v-btn>
+                <v-btn @click="moveNext" v-if="!(currentStep === 4)">Next</v-btn>
             </div>
 
         </v-stepper>
@@ -78,6 +78,13 @@ async function loadSeasons(): Promise<ISeason> {
 
         if(responsePayload !== null){
             season = responsePayload[0];
+            // time conversions to deal with time stamps in json forms
+            season.metaData.startTime = helpers.epochToISO(season.metaData.startTime);
+            season.metaData.endTime  = helpers.epochToISO(season.metaData.endTime);
+            season.eventsData.forEach(event=>{
+              event.startTime = helpers.epochToISO(event.startTime);
+              event.endTime = helpers.epochToISO(event.endTime);
+            });
         }
         else
             season = defaults.getDefaultSeason();
@@ -98,10 +105,8 @@ function changeSeasonState(metaData:IMeta , eventsData:ISeasonEvent[]){
 }
 
 function moveNext() {
-    if (currentStep.value < 4 && stepValidated.value) {
+    if (currentStep.value < 4 && handleValidation()) {
         currentStep.value++;
-        handleValidation();
-        stepValidated.value = validationStates[currentStep.value - 1];
     }
 }
 
@@ -113,16 +118,17 @@ function moveBack() {
 }
 
 function handleValidation() {
-    let valid = false;
-    if (currentStep.value === 1)
-        valid = helpers.validateSchema(seasonState.value.metaData , MetaSchema);
-    else if (currentStep.value === 2)
-        valid = helpers.validateSchema(seasonState.value.metaData , MetaSchema);
-    else
-        valid = true;
+    let validationMessage = {valid:true ,errors:[]};
 
-    stepValidated.value = valid;
-    validationStates[currentStep.value] = valid;
+    if(currentStep.value === 1)
+      validationMessage = useSeasonValidators().validateMeta(seasonState.value.metaData);
+    else if(currentStep.value === 2)
+      validationMessage = useSeasonValidators().validateMeta(seasonState.value.metaData);
+
+    if(!validationMessage.valid)
+      alert(validationMessage.errors[0].instancePath + ' ' + validationMessage.errors[0].message);
+
+    return validationMessage.valid;
 }
 
 
@@ -133,25 +139,27 @@ async function submitSeason(){
             "method":"POST",
             "body":seasonState.value
         });
+        console.log(data);
         const router = useRouter();
-        seasonState.value = defaults.getDefaultSeason();
-        router.push('/seasons');
+        if(data.value.success) {
+          seasonState.value = defaults.getDefaultSeason();
+          router.push('/seasons');
+        }else{
+          let message = data.value.message[0];
+          alert(message.instancePath + ' ' + message.message);
+        }
     }catch(error:any){
         console.log(error);
     }
 }
-watch(seasonState.value , (newSeasonState)=>{
-    handleValidation();
-    console.log("Values changed");
-    console.log(seasonState.value);
-});
 
 function copySeason() {
     navigator.clipboard.writeText(JSON.stringify(seasonState.value));
 }
 
-onMounted(()=>{
-  handleValidation();
+watch(seasonState.value , (newVals)=>{
+  console.log("Changing value");
+  console.log(newVals);
 })
 
 </script>
