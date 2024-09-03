@@ -7,7 +7,7 @@ export default defineEventHandler(async (request):Promise<IBaseResponse> => {
     
     // nakama configs ... we'll move these steps to some other place ...
     var useSSL = false; // Enable if server is run with an SSL certificate.
-    var client = new Client("defaultkey", "9302", "7350", useSSL);
+    var client = new Client("defaultkey", "localhost", "7350", useSSL);
     const deviceId = "9158C14D-BAE4-52F9-8733-418481F701B9";
     const session = await client.authenticateDevice(deviceId, true, "umairhassan");
 
@@ -37,28 +37,30 @@ export default defineEventHandler(async (request):Promise<IBaseResponse> => {
             }
         }
 
+        console.log(seasons);
         if(seasons.length < 1){
             return {
                 success:true,
                 message:"all objects are already pushed to nakama"
             }
         }
+        console.log("try to push");
+        const response = await client.rpc(session , 'storeSeasonRpc' , seasons[0]);
         // create storage write objects...
-        let writeObjects:WriteStorageObject[] = [];
-        for (let index = 0; index < seasons.length; index++) {
-            const writeObject: WriteStorageObject = {
-                collection: "seasons",
-                key: seasons[index].seasonId,
-                value: seasons[index]
-            };
-            writeObjects.push(writeObject);
-        }
+        // let writeObjects:WriteStorageObject[] = [];
+        // for (let index = 0; index < seasons.length; index++) {
+        //     const writeObject: WriteStorageObject = {
+        //         collection: "seasons",
+        //         key: seasons[index].seasonId,
+        //         value: seasons[index]
+        //     };
+        //     writeObjects.push(writeObject);
+        // }
 
-        // push to nakama..
-        const writeResponse = await client.writeStorageObjects(session, writeObjects);
+        console.log(response);
 
         // mark pushed to nakama as true
-        const response = await queries.batchUpdate({ table: 'season', column: 'seasonId' }, collections);
+        //const response = await queries.batchUpdate({ table: 'season', column: 'seasonId' }, collections);
 
         return {
             success:true,
